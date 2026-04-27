@@ -1,0 +1,313 @@
+{
+  "info": {
+    "name": "ShopFlow API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/auth/register" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Nora\",\n  \"lastName\": \"Client\",\n  \"email\": \"nora@shopflow.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"CUSTOMER\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/auth/login" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@shopflow.com\",\n  \"password\": \"Customer123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/auth/logout" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/products?page=0&size=12&sortBy=newest&sortDirection=desc" } } },
+        { "name": "Get By Id", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/products/1" } } },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/products" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premium Headphones\",\n  \"description\": \"Noise cancelling\",\n  \"price\": 350,\n  \"promoPrice\": 299,\n  \"stock\": 20,\n  \"categoryIds\": [2],\n  \"imageUrls\": [\"https://example.com/img.jpg\"],\n  \"variants\": [{\"attributeName\": \"Color\", \"attributeValue\": \"Black\", \"priceDelta\": 0, \"stock\": 12}]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/products/1" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Premium Headphones V2\",\n  \"description\": \"Updated\",\n  \"price\": 340,\n  \"promoPrice\": 300,\n  \"stock\": 30,\n  \"categoryIds\": [2],\n  \"imageUrls\": [\"https://example.com/img2.jpg\"],\n  \"variants\": [{\"attributeName\": \"Color\", \"attributeValue\": \"Black\", \"priceDelta\": 0, \"stock\": 15}]\n}"
+            }
+          }
+        },
+        {
+          "name": "Soft Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/products/1" }
+          }
+        },
+        { "name": "Search", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/products/search?q=headphones" } } },
+        { "name": "Top Selling", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/products/top-selling" } } }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        { "name": "List Tree", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/categories" } } },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/categories" },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Gaming\",\n  \"description\": \"Gaming products\",\n  \"parentId\": null\n}" }
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/categories/1" },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Luxury Fashion\",\n  \"description\": \"Updated\",\n  \"parentId\": null\n}" }
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/categories/1" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Addresses",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": { "raw": "{{baseUrl}}/api/addresses" } } },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/addresses" },
+            "body": { "mode": "raw", "raw": "{\n  \"street\": \"12 Habib Bourguiba\",\n  \"city\": \"Tunis\",\n  \"postalCode\": \"1000\",\n  \"country\": \"Tunisia\",\n  \"principal\": true\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        { "name": "Get", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": { "raw": "{{baseUrl}}/api/cart" } } },
+        {
+          "name": "Add Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/cart/items" },
+            "body": { "mode": "raw", "raw": "{\n  \"productId\": 1,\n  \"variantId\": 1,\n  \"quantity\": 1\n}" }
+          }
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/cart/items/1" },
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2\n}" }
+          }
+        },
+        { "name": "Remove Item", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": { "raw": "{{baseUrl}}/api/cart/items/1" } } },
+        {
+          "name": "Apply Coupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/cart/coupon" },
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"WELCOME10\"\n}" }
+          }
+        },
+        { "name": "Remove Coupon", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": { "raw": "{{baseUrl}}/api/cart/coupon" } } }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/orders" },
+            "body": { "mode": "raw", "raw": "{\n  \"addressId\": 1\n}" }
+          }
+        },
+        { "name": "Get By Id", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": { "raw": "{{baseUrl}}/api/orders/1" } } },
+        { "name": "My Orders", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": { "raw": "{{baseUrl}}/api/orders/my" } } },
+        {
+          "name": "Update Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{sellerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/orders/1/status" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"PAID\"\n}" }
+          }
+        },
+        { "name": "Cancel", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }], "url": { "raw": "{{baseUrl}}/api/orders/1/cancel" } } },
+        { "name": "All (Admin)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/api/orders" } } }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/reviews" },
+            "body": { "mode": "raw", "raw": "{\n  \"productId\": 1,\n  \"rating\": 5,\n  \"comment\": \"Great\"\n}" }
+          }
+        },
+        { "name": "By Product", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/reviews/product/1" } } },
+        { "name": "Approve", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/api/reviews/1/approve" } } }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        { "name": "Admin", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/api/dashboard/admin" } } },
+        { "name": "Seller", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{sellerToken}}" }], "url": { "raw": "{{baseUrl}}/api/dashboard/seller" } } }
+      ]
+    },
+    {
+      "name": "Coupons",
+      "item": [
+        {
+          "name": "Create (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/coupons" },
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SPRING15\",\n  \"type\": \"PERCENT\",\n  \"value\": 15,\n  \"minOrderAmount\": 150,\n  \"expiresAt\": \"2030-01-01T00:00:00\",\n  \"maxUsages\": 500,\n  \"active\": true\n}" }
+          }
+        },
+        {
+          "name": "Update (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/coupons/1" },
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"WELCOME10\",\n  \"type\": \"PERCENT\",\n  \"value\": 10,\n  \"minOrderAmount\": 100,\n  \"expiresAt\": \"2030-01-01T00:00:00\",\n  \"maxUsages\": 1000,\n  \"active\": true\n}" }
+          }
+        },
+        { "name": "Delete (Admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }], "url": { "raw": "{{baseUrl}}/api/coupons/1" } } },
+        { "name": "Validate", "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/coupons/validate/WELCOME10" } } }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:9090" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "sellerToken", "value": "" }
+  ]
+}
