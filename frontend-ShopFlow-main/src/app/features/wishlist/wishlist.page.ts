@@ -36,7 +36,10 @@ import { SectionHeadingComponent } from '../../shared/components/section-heading
         />
 
         <div class="flex flex-wrap gap-3">
-          <button type="button" class="button-secondary px-6">Share Wishlist</button>
+          <button type="button" class="button-secondary px-6" (click)="shareWishlist()">
+            <app-icon name="share" [size]="16" className="text-zinc-200" />
+            Share Wishlist
+          </button>
           <button type="button" class="button-primary px-6" (click)="moveAllToCart()">Move All to Cart</button>
         </div>
       </div>
@@ -174,5 +177,15 @@ export class WishlistPageComponent {
         })
         .subscribe();
     }
+  }
+
+  shareWishlist(): void {
+    const url = `${location.origin}/account/wishlist`;
+    if (navigator.share) {
+      void navigator.share({ title: 'Shopflow Wishlist', url });
+      return;
+    }
+
+    void navigator.clipboard?.writeText(url);
   }
 }

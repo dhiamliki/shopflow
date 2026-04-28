@@ -10,7 +10,7 @@ import { Component, input } from '@angular/core';
       @if (title() || subtitle()) {
         <header class="mb-4">
           @if (title()) {
-            <h3 class="text-xl font-semibold text-white">{{ title() }}</h3>
+            <h3 class="text-lg font-semibold text-white">{{ title() }}</h3>
           }
           @if (subtitle()) {
             <p class="mt-2 text-sm leading-6 text-zinc-400">{{ subtitle() }}</p>

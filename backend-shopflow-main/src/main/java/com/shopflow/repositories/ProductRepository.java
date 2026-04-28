@@ -29,5 +29,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     Page<Product> searchFullText(@Param("query") String query, Pageable pageable);
 
     long countBySeller_Id(Long sellerId);
+    long countBySeller_IdAndActiveTrue(Long sellerId);
+    long countBySeller_IdAndActiveTrueAndStockLessThanEqual(Long sellerId, Integer threshold);
     long countBySeller_IdAndStockLessThanEqual(Long sellerId, Integer threshold);
 }

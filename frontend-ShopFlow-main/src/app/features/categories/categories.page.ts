@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
 import { map, startWith } from 'rxjs';
 import { CategoriesService } from '../../core/services/categories.service';
 import { NavigationService } from '../../core/services/navigation.service';
@@ -17,20 +16,19 @@ import { SectionHeadingComponent } from '../../shared/components/section-heading
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterLink,
     CategoryCardComponent,
     IconComponent,
     SectionHeadingComponent,
     EmptyStateComponent
   ],
   template: `
-    <section class="mx-auto max-w-[1700px] px-4 py-10 lg:px-8">
+    <section class="sf-page py-12">
       <div class="grid gap-8 xl:grid-cols-[0.9fr,0.58fr] xl:items-end">
         <app-section-heading
           title="Shop by Category"
           subtitle="Find exactly what you're looking for from our wide range of categories."
         />
-        <div class="panel-dark flex items-center gap-3 px-4 py-4">
+        <div class="panel-dark flex min-h-16 items-center gap-3 px-5">
           <app-icon name="search" [size]="18" className="text-zinc-500" />
           <input
             [formControl]="searchControl"
@@ -43,8 +41,7 @@ import { SectionHeadingComponent } from '../../shared/components/section-heading
 
       <div class="mt-8 space-y-6">
         <div class="flex items-center justify-between">
-          <h2 class="text-3xl font-semibold text-white">All Categories</h2>
-          <p class="text-sm text-zinc-400">{{ filteredCategories().length }} categories available</p>
+          <h2 class="text-xl font-semibold text-white">All Categories</h2>
         </div>
         @if (filteredCategories().length) {
           <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
@@ -70,7 +67,7 @@ import { SectionHeadingComponent } from '../../shared/components/section-heading
             <div class="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
               <app-icon name="chart" [size]="24" className="text-white" />
             </div>
-            <h3 class="mt-4 text-4xl font-semibold tracking-tight text-white">Don't see your category?</h3>
+            <h3 class="mt-4 text-3xl font-semibold tracking-tight text-white">Don't see your category?</h3>
             <p class="max-w-2xl text-base leading-7 text-zinc-400">
               Start selling and reach thousands of buyers today. Create your seller account and list products in minutes.
             </p>
@@ -102,8 +99,7 @@ export class CategoriesPageComponent {
     this.searchControl.valueChanges.pipe(
       startWith(this.searchControl.getRawValue()),
       map((search) =>
-        this.categoriesService
-          .flattenCategories(this.categories())
+        this.categories()
           .filter((category) =>
             `${category.name} ${category.description}`.toLowerCase().includes(search.toLowerCase())
           )

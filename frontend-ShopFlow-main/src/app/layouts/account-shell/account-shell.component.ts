@@ -3,35 +3,25 @@ import { RouterOutlet } from '@angular/router';
 import { NavSection } from '../../core/models/ui.models';
 import { SessionService } from '../../core/services/session.service';
 import { WorkspaceService } from '../../core/services/workspace.service';
-import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
 import { SidebarNavComponent } from '../../shared/components/sidebar-nav/sidebar-nav.component';
 import { TopNavComponent } from '../../shared/components/top-nav/top-nav.component';
 
 @Component({
   selector: 'app-account-shell',
   standalone: true,
-  imports: [RouterOutlet, TopNavComponent, SidebarNavComponent, PanelCardComponent],
+  imports: [RouterOutlet, TopNavComponent, SidebarNavComponent],
   template: `
     <div class="min-h-screen bg-black text-white">
       <app-top-nav mode="shop" />
 
-      <div class="mx-auto grid max-w-[1700px] gap-6 px-4 py-6 lg:grid-cols-[248px,1fr] lg:px-8">
-        <aside class="space-y-6">
+      <div class="mx-auto grid max-w-[1800px] lg:grid-cols-[270px,1fr]">
+        <aside class="hidden border-r border-white/10 px-5 py-8 lg:block">
           <div class="sticky top-28 space-y-6">
             <app-sidebar-nav [sections]="sections()" />
-
-            <app-panel-card
-              title="Need Help?"
-              subtitle="Our support team is here to help you with orders, returns, and account questions."
-            >
-              <a href="mailto:support@shopflow.com" class="button-secondary w-full justify-center">
-                Contact Support
-              </a>
-            </app-panel-card>
           </div>
         </aside>
 
-        <section class="min-w-0">
+        <section class="min-w-0 px-4 py-8 lg:px-8">
           <router-outlet />
         </section>
       </div>
@@ -51,13 +41,17 @@ export class AccountShellComponent {
         {
           label: 'Wishlist',
           route: '/account/wishlist',
-          icon: 'heart'
+          icon: 'heart',
+          badge: this.workspace.wishlist().length || null
         },
         {
           label: 'Notifications',
           route: '/account/notifications',
-          icon: 'bell'
+          icon: 'bell',
+          badge: this.workspace.unreadNotificationCount() || null
         },
+        { label: 'Addresses', route: '/account/settings', icon: 'map' },
+        { label: 'Payment Methods', route: '/account/settings', icon: 'card' },
         { label: 'Account Settings', route: '/account/settings', icon: 'settings' }
       ]
     };
@@ -67,7 +61,11 @@ export class AccountShellComponent {
           label: 'Seller',
           items: [
             { label: 'Seller Dashboard', route: '/seller/dashboard', icon: 'store' },
-            { label: 'Create Listing', route: '/seller/create-listing', icon: 'plus' }
+            { label: 'Create Listing', route: '/seller/create-listing', icon: 'plus' },
+            { label: 'My Listings', route: '/seller/dashboard', icon: 'dashboard' },
+            { label: 'Orders', route: '/seller/dashboard', icon: 'package' },
+            { label: 'Payouts', route: '/seller/dashboard', icon: 'circle-dollar' },
+            { label: 'Analytics', route: '/seller/dashboard', icon: 'analytics' }
           ]
         }
       : {
@@ -75,15 +73,6 @@ export class AccountShellComponent {
           items: [{ label: 'Start Selling', route: '/seller/onboarding', icon: 'store' }]
         };
 
-    const supportSection: NavSection = {
-      label: 'Quick Links',
-      items: [
-        { label: 'Help Center', route: '/about', icon: 'life' },
-        { label: 'Returns & Refunds', route: '/account/orders', icon: 'arrow-left' },
-        { label: 'Contact Support', route: '/about', icon: 'headset' }
-      ]
-    };
-
-    return [accountSection, sellerSection, supportSection];
+    return [accountSection, sellerSection];
   });
 }

@@ -7,6 +7,7 @@ import { Product, CartItem } from '../../core/models/commerce.models';
 import { CatalogService } from '../../core/services/catalog.service';
 import { CartService } from '../../core/services/cart.service';
 import { SessionService } from '../../core/services/session.service';
+import { WorkspaceService } from '../../core/services/workspace.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
@@ -23,7 +24,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
     PanelCardComponent
   ],
   template: `
-    <section class="mx-auto max-w-[1680px] px-4 py-8 lg:px-8">
+    <section class="sf-page py-10">
       @if (!session.isCustomer()) {
         <app-empty-state
           icon="bag"
@@ -43,7 +44,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
           <a routerLink="/browse" class="button-primary px-8">Continue shopping</a>
         </app-empty-state>
       } @else {
-        <div class="grid gap-8 xl:grid-cols-[1fr,420px]">
+        <div class="grid gap-12 xl:grid-cols-[1fr,500px]">
           <section class="space-y-7">
             <div class="flex flex-wrap items-end justify-between gap-4">
               <div class="space-y-3">
@@ -95,7 +96,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                       }
                     </div>
                     <div class="flex flex-wrap gap-4 text-sm">
-                      <button type="button" class="inline-flex items-center gap-2 text-zinc-300 hover:text-white">
+                  <button type="button" class="inline-flex items-center gap-2 text-zinc-300 hover:text-white" (click)="moveToWishlist(item)">
                         <app-icon name="heart" [size]="16" className="text-zinc-300" />
                         Move to Wishlist
                       </button>
@@ -103,19 +104,19 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                   </div>
 
                   <div class="space-y-4">
-                    <p class="text-3xl font-semibold text-white">
-                      {{ item.unitPrice | currency: 'USD' : 'symbol' : '1.0-0' }}
+                    <p class="text-base font-semibold text-white">
+                      {{ item.unitPrice | currency: 'USD' : 'symbol' : '1.2-2' }}
                     </p>
                     <div class="inline-flex items-center rounded-2xl border border-white/10 bg-white/[0.03]">
-                      <button type="button" class="px-4 py-3 text-zinc-300" (click)="updateQuantity(item, item.quantity - 1)">−</button>
+                      <button type="button" class="px-4 py-3 text-zinc-300" (click)="updateQuantity(item, item.quantity - 1)">-</button>
                       <span class="px-5 py-3 text-lg font-semibold text-white">{{ item.quantity }}</span>
                       <button type="button" class="px-4 py-3 text-zinc-300" (click)="updateQuantity(item, item.quantity + 1)">+</button>
                     </div>
                   </div>
 
                   <div class="space-y-3 text-right">
-                    <p class="text-3xl font-semibold text-white">
-                      {{ item.totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}
+                    <p class="text-base font-semibold text-white">
+                      {{ item.totalPrice | currency: 'USD' : 'symbol' : '1.2-2' }}
                     </p>
                     <button type="button" class="inline-flex items-center gap-2 text-zinc-300 hover:text-white" (click)="removeItem(item.id)">
                       <app-icon name="trash" [size]="16" className="text-zinc-300" />
@@ -140,11 +141,11 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               </div>
 
               <div class="flex flex-wrap items-center gap-4 text-sm text-zinc-300">
-                <button type="button" class="inline-flex items-center gap-2 hover:text-white">
+                <button type="button" class="inline-flex items-center gap-2 hover:text-white" (click)="removeSelected()">
                   <app-icon name="trash" [size]="16" className="text-zinc-300" />
                   Remove Selected
                 </button>
-                <button type="button" class="inline-flex items-center gap-2 hover:text-white">
+                <button type="button" class="inline-flex items-center gap-2 hover:text-white" (click)="applyCoupon()">
                   <app-icon name="badge-percent" [size]="16" className="text-zinc-300" />
                   Apply Coupon
                 </button>
@@ -199,8 +200,8 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                 Proceed to Checkout
               </a>
 
-              <button type="button" class="button-secondary mt-4 w-full">
-                Buy with PayPal
+              <button type="button" class="button-secondary mt-4 w-full" (click)="checkoutWithPayPal()">
+                Buy with <span class="font-bold text-sky-400">PayPal</span>
               </button>
 
               <p class="mt-5 flex items-center justify-center gap-2 text-sm text-zinc-400">
@@ -230,6 +231,7 @@ export class CartPageComponent {
   readonly cartService = inject(CartService);
   readonly session = inject(SessionService);
   private readonly router = inject(Router);
+  private readonly workspace = inject(WorkspaceService);
 
   readonly selectedIds = signal<number[]>([]);
 
@@ -289,11 +291,6 @@ export class CartPageComponent {
       icon: 'shield-check',
       title: 'Secure Payment',
       body: 'Your payment information is always protected.'
-    },
-    {
-      icon: 'headset',
-      title: '24/7 Support',
-      body: 'We are here whenever you need help.'
     }
   ];
 
@@ -337,5 +334,24 @@ export class CartPageComponent {
 
   removeItem(itemId: number): void {
     this.cartService.removeItem(itemId).subscribe();
+  }
+
+  moveToWishlist(item: CartItem & { product: Product }): void {
+    this.workspace.toggleWishlist(item.product);
+    this.removeItem(item.id);
+  }
+
+  removeSelected(): void {
+    for (const item of this.selectedItems()) {
+      this.cartService.removeItem(item.id).subscribe();
+    }
+  }
+
+  applyCoupon(): void {
+    this.cartService.applyCoupon('WELCOME10').subscribe();
+  }
+
+  checkoutWithPayPal(): void {
+    void this.router.navigateByUrl('/checkout?payment=paypal');
   }
 }

@@ -13,7 +13,6 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
 interface ListingDraftFormValue {
   title: string;
   categoryId: string;
-  condition: string;
   brand: string;
   model: string;
   price: number;
@@ -60,7 +59,7 @@ interface ListingDraftPayload {
             <div class="grid gap-4 md:grid-cols-[180px,repeat(5,minmax(0,1fr))]">
               <button
                 type="button"
-                class="flex aspect-square flex-col items-center justify-center rounded-[24px] border border-dashed border-white/14 bg-white/[0.02] text-zinc-300 hover:border-white/20"
+                class="flex aspect-square flex-col items-center justify-center rounded-[24px] border border-dashed border-white/14 bg-white/[0.02] text-zinc-300 hover:border-white/20 w-24"
                 (click)="fileInput.click()"
               >
                 <app-icon name="upload" [size]="22" className="text-zinc-200" />
@@ -69,7 +68,7 @@ interface ListingDraftPayload {
               </button>
 
               @for (image of uploadedImages(); track image; let index = $index) {
-                <div class="relative overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03]">
+                <div class="relative overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03] w-24">
                   @if (index === 0) {
                     <span class="absolute left-3 top-3 z-10 rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">Cover</span>
                   }
@@ -83,7 +82,7 @@ interface ListingDraftPayload {
               @if (uploadedImages().length < 5) {
                 <button
                   type="button"
-                  class="flex aspect-square items-center justify-center rounded-[24px] border border-dashed border-white/14 bg-white/[0.02] text-zinc-300"
+                  class="flex aspect-square items-center justify-center rounded-[24px] border border-dashed border-white/14 bg-white/[0.02] text-zinc-300 w-24"
                   (click)="fileInput.click()"
                 >
                   <div class="text-center">
@@ -109,14 +108,9 @@ interface ListingDraftPayload {
                     <option [value]="category.id">{{ category.name }}</option>
                   }
                 </select>
-                <select class="select-dark" formControlName="condition">
-                  <option value="New">New</option>
-                  <option value="Like New">Like New</option>
-                  <option value="Used">Used</option>
-                </select>
+                <input class="input-dark" formControlName="brand" placeholder="Brand" />
               </div>
               <div class="grid gap-4 md:grid-cols-2">
-                <input class="input-dark" formControlName="brand" placeholder="Brand" />
                 <input class="input-dark" formControlName="model" placeholder="Model" />
               </div>
             </div>
@@ -172,7 +166,13 @@ interface ListingDraftPayload {
         <aside class="space-y-5">
           <app-panel-card title="Listing Preview" subtitle="This is how your listing will appear to buyers." className="sticky top-28">
             <div class="overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03]">
-              <img class="aspect-square w-full object-cover" [src]="previewImage()" [alt]="listingForm.controls.title.value || 'Listing preview'" />
+              @if (previewImage()) {
+                <img class="aspect-square w-full object-cover" [src]="previewImage()" [alt]="listingForm.controls.title.value || 'Listing preview'" />
+              } @else {
+                <div class="flex aspect-square w-full items-center justify-center text-zinc-500">
+                  <app-icon name="image" [size]="28" className="text-zinc-500" />
+                </div>
+              }
             </div>
             <h3 class="mt-5 text-2xl font-semibold text-white">{{ listingForm.controls.title.value || 'Your listing title' }}</h3>
             <div class="mt-3 flex items-center gap-3">
@@ -217,21 +217,17 @@ export class CreateListingPageComponent {
   readonly uploadedImages = signal<string[]>([]);
 
   readonly listingForm = this.fb.nonNullable.group({
-    title: ['Sony WH-1000XM5 Wireless Headphones', Validators.required],
+    title: ['', Validators.required],
     categoryId: ['', Validators.required],
-    condition: ['New', Validators.required],
-    brand: ['Sony'],
-    model: ['WH-1000XM5'],
-    price: [299.99, Validators.required],
-    compareAtPrice: [399.99],
-    quantity: [25, Validators.required],
+    brand: [''],
+    model: [''],
+    price: [0, Validators.required],
+    compareAtPrice: [0],
+    quantity: [1, Validators.required],
     allowOffers: true,
     trackInventory: false,
     showQuantity: true,
-    description: [
-      'Premium wireless headphones with advanced noise cancellation, clear audio, and a comfortable all-day fit.',
-      Validators.required
-    ]
+    description: ['', Validators.required]
   });
 
   readonly categories = toSignal(this.categoriesService.getCategories(), { initialValue: [] });

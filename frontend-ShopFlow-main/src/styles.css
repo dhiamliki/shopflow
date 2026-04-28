@@ -1,20 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
   color-scheme: dark;
-  --bg: #050505;
-  --bg-soft: #0a0a0b;
-  --panel: rgba(16, 16, 17, 0.96);
+  --bg: #000000;
+  --bg-soft: #070707;
+  --panel: rgba(18, 18, 18, 0.94);
   --panel-soft: rgba(255, 255, 255, 0.03);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.11);
+  --border-strong: rgba(255, 255, 255, 0.18);
   --text: #ffffff;
-  --muted: #a1a1aa;
+  --muted: #a8a8a8;
   --muted-strong: #d4d4d8;
-  --accent: #32d17a;
-  --accent-soft: rgba(50, 209, 122, 0.16);
-  --danger: #ff4d67;
+  --accent: #49d982;
+  --accent-soft: rgba(73, 217, 130, 0.16);
+  --danger: #ff3f55;
 }
 
 html {
@@ -23,12 +23,10 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(60rem 25rem at 8% -5%, rgba(50, 209, 122, 0.12), transparent 58%),
-    radial-gradient(38rem 20rem at 100% 0%, rgba(255, 255, 255, 0.04), transparent 60%),
-    linear-gradient(180deg, #060606 0%, #030303 100%);
+  background: #000;
   color: var(--text);
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 body,
@@ -63,6 +61,21 @@ textarea {
   font: inherit;
 }
 
+select {
+  color-scheme: dark;
+}
+
+select option,
+select optgroup {
+  background-color: #0a0a0a;
+  color: #f8fafc;
+}
+
+select option:checked {
+  background-color: #173526;
+  color: #ffffff;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -74,19 +87,18 @@ a {
 }
 
 .font-display {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .panel-dark {
   position: relative;
   border: 1px solid var(--border);
-  border-radius: 28px;
+  border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.028) 0%, rgba(255, 255, 255, 0.015) 100%),
-    rgba(12, 12, 13, 0.98);
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    radial-gradient(50rem 30rem at 100% 0%, rgba(255, 255, 255, 0.035), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.018) 100%),
+    rgba(13, 13, 13, 0.98);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .panel-dark::after {
@@ -106,7 +118,7 @@ a {
   align-items: center;
   gap: 0.75rem;
   justify-content: center;
-  border-radius: 18px;
+  border-radius: 8px;
   transition:
     transform 160ms ease,
     background-color 160ms ease,
@@ -117,7 +129,7 @@ a {
 }
 
 .button-primary {
-  min-height: 52px;
+  min-height: 48px;
   border: 1px solid rgba(255, 255, 255, 0.92);
   background: white;
   color: black;
@@ -131,7 +143,7 @@ a {
 }
 
 .button-secondary {
-  min-height: 50px;
+  min-height: 46px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.03);
   color: white;
@@ -148,7 +160,7 @@ a {
 }
 
 .button-ghost {
-  min-height: 50px;
+  min-height: 46px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: transparent;
   color: white;
@@ -158,8 +170,8 @@ a {
 
 .icon-button {
   position: relative;
-  height: 46px;
-  width: 46px;
+  height: 42px;
+  width: 42px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -177,8 +189,8 @@ a {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--accent);
-  color: black;
+  background: #f43f5e;
+  color: white;
   font-size: 0.7rem;
   font-weight: 800;
   line-height: 1;
@@ -189,9 +201,9 @@ a {
 .select-dark,
 .textarea-dark {
   width: 100%;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.035);
   color: white;
   outline: none;
   transition:
@@ -202,8 +214,49 @@ a {
 
 .input-dark,
 .select-dark {
-  min-height: 52px;
+  min-height: 48px;
   padding: 0 1rem;
+}
+
+.select-dark {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.65rem;
+  background:
+    linear-gradient(45deg, transparent 50%, #d4d4d8 50%) right 1.15rem center / 6px 6px no-repeat,
+    linear-gradient(135deg, #d4d4d8 50%, transparent 50%) right 0.8rem center / 6px 6px no-repeat,
+    rgba(255, 255, 255, 0.035);
+}
+
+.select-dark:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.055);
+}
+
+.select-dark option {
+  background: #0a0a0a;
+  color: #f8fafc;
+}
+
+.select-dark option:checked,
+.select-dark option:hover,
+.select-dark option:focus {
+  background: #183728;
+  color: #ffffff;
+}
+
+.select-dark.select-compact {
+  min-height: 0;
+  height: 100%;
+  border: 0;
+  background-color: transparent;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 1.65rem;
+  background-position:
+    right 0.7rem center,
+    right 0.38rem center,
+    center;
 }
 
 .textarea-dark {
@@ -301,4 +354,19 @@ a:focus-visible {
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
+}
+
+.sf-page {
+  width: min(100% - 3rem, 1640px);
+  margin-inline: auto;
+}
+
+.sf-image-well {
+  background:
+    radial-gradient(circle at 50% 26%, rgba(255, 255, 255, 0.12), transparent 46%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+}
+
+.sf-check {
+  accent-color: white;
 }

@@ -1,5 +1,5 @@
-import { CurrencyPipe, DecimalPipe, NgClass } from '@angular/common';
-import { DestroyRef, Component, computed, inject, input } from '@angular/core';
+import { CurrencyPipe, NgClass } from '@angular/common';
+import { Component, DestroyRef, computed, inject, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { Product } from '../../../core/models/commerce.models';
@@ -12,38 +12,45 @@ import { IconComponent } from '../icon.component';
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, DecimalPipe, NgClass, GlowSurfaceDirective, IconComponent],
+  imports: [RouterLink, CurrencyPipe, NgClass, GlowSurfaceDirective, IconComponent],
   template: `
     <article
       appGlowSurface
-      class="panel-dark group flex h-full flex-col overflow-hidden p-4 transition-all duration-200 hover:-translate-y-0.5"
-      [ngClass]="context() === 'compact' ? 'rounded-[24px] p-3' : ''"
+      class="panel-dark group relative flex h-full flex-col overflow-hidden p-3 transition-all duration-200 hover:border-white/20"
+      [ngClass]="context() === 'compact' ? 'p-3' : ''"
     >
-      <div class="relative overflow-hidden rounded-[24px] border border-white/6 bg-white/[0.03]">
+      @if (context() === 'wishlist') {
+        <input
+          type="checkbox"
+          class="sf-check absolute left-5 top-5 z-10 h-4 w-4 rounded border-white/40 bg-transparent"
+        />
+      }
+
+      <div class="sf-image-well relative overflow-hidden rounded-md">
         <a [routerLink]="['/product', product().id]" class="block">
           @if (primaryImage()) {
             <img
-              class="aspect-square w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+              class="aspect-[1.08/1] w-full object-cover opacity-90 transition duration-300 group-hover:scale-[1.02]"
               [src]="primaryImage()"
               [alt]="product().name"
             />
           } @else {
-            <div class="flex aspect-square items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.1),_transparent_58%),linear-gradient(180deg,_rgba(255,255,255,0.05),_rgba(255,255,255,0.01))]">
+            <div class="flex aspect-[1.08/1] items-center justify-center">
               <app-icon name="bag" [size]="28" className="text-zinc-500" />
             </div>
           }
         </a>
 
-        @if (workspace.wishlistAvailable) {
+        @if (workspace.wishlistAvailable && showActions()) {
           <button
             type="button"
-            class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/55 text-white backdrop-blur transition hover:border-white/20"
+            class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:bg-white/10"
             (click)="toggleWishlist()"
           >
             <app-icon
               name="heart"
               [size]="17"
-              [className]="wishlisted() ? 'text-rose-400' : 'text-white'"
+              [className]="wishlisted() || context() === 'wishlist' ? 'text-rose-500 fill-rose-500' : 'text-white'"
             />
           </button>
         }
@@ -57,14 +64,14 @@ import { IconComponent } from '../icon.component';
         }
       </div>
 
-      <div class="mt-4 flex flex-1 flex-col">
-        @if (showCategory()) {
+      <div class="mt-4 flex flex-1 flex-col px-1">
+        @if (showCategory() && !showActions()) {
           <p class="text-sm text-zinc-500">{{ categoryLabel() }}</p>
         }
 
         <a
           [routerLink]="['/product', product().id]"
-          class="mt-1 line-clamp-2 text-[1.12rem] font-semibold leading-7 text-white transition hover:text-zinc-200"
+          class="mt-1 line-clamp-2 text-base font-semibold leading-6 text-white transition hover:text-zinc-200"
         >
           {{ product().name }}
         </a>
@@ -73,30 +80,37 @@ import { IconComponent } from '../icon.component';
           <p class="mt-2 text-sm text-zinc-400">by {{ product().sellerName }}</p>
         }
 
-        <div class="mt-3 flex items-center gap-2 text-sm">
-          <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-          <span class="text-emerald-300">In stock</span>
-          <span class="text-zinc-500">&bull;</span>
-          <span class="text-zinc-400">{{ product().averageRating | number: '1.1-1' }} rated</span>
-        </div>
+        @if (showActions()) {
+          <div class="mt-3 flex items-center gap-2 text-sm">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            <span class="text-emerald-300">In stock</span>
+          </div>
+        }
 
-        <div class="mt-4 flex items-end gap-3">
-          <span class="text-3xl font-semibold tracking-tight text-white">
-            {{ product().effectivePrice | currency: 'USD' : 'symbol' : '1.0-0' }}
+        <div class="mt-auto flex items-end justify-between gap-3 pt-3">
+          <span class="text-xl font-semibold tracking-tight text-white">
+            {{ product().effectivePrice | currency: 'USD' : 'symbol' : '1.2-2' }}
           </span>
-          @if (product().promoPrice) {
-            <span class="text-base text-zinc-500 line-through">
-              {{ product().price | currency: 'USD' : 'symbol' : '1.0-0' }}
-            </span>
+          @if (!showActions()) {
+            <button type="button" class="text-zinc-200 hover:text-white" (click)="toggleWishlist()">
+              <app-icon
+                name="heart"
+                [size]="20"
+                [className]="wishlisted() ? 'text-rose-500 fill-rose-500' : 'text-zinc-200'"
+              />
+            </button>
           }
         </div>
 
         @if (showActions()) {
-          <div class="mt-5 grid grid-cols-[1fr_auto] gap-3">
-            <button type="button" class="button-secondary" (click)="addToCart()">Add to Cart</button>
+          <div class="mt-5 flex items-center gap-4">
+            <button type="button" class="button-secondary min-h-10 flex-1 px-4 text-sm" (click)="addToCart()">
+              <app-icon name="shopping-cart" [size]="16" className="text-zinc-200" />
+              Add to Cart
+            </button>
             <button
               type="button"
-              class="button-ghost inline-flex items-center justify-center px-4"
+              class="inline-flex min-h-10 items-center gap-2 text-sm text-zinc-300 hover:text-white"
               (click)="removeIfWishlist()"
             >
               <app-icon
@@ -104,6 +118,7 @@ import { IconComponent } from '../icon.component';
                 [size]="16"
                 className="text-zinc-300"
               />
+              {{ context() === 'wishlist' ? 'Remove' : 'Share' }}
             </button>
           </div>
         }

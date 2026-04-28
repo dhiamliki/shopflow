@@ -1,10 +1,8 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
-import { CatalogService } from '../../core/services/catalog.service';
+import { SellerDashboard } from '../../core/models/dashboard.models';
 import { DashboardService } from '../../core/services/dashboard.service';
-import { OrdersService } from '../../core/services/orders.service';
 import { SessionService } from '../../core/services/session.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon.component';
@@ -20,11 +18,10 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div class="space-y-2">
             <h1 class="font-display text-5xl font-semibold tracking-tight text-white">
-              Welcome back, {{ session.user()?.firstName || 'Seller' }}.
+              {{ sellerProfile().shopName || ('Welcome back, ' + (session.user()?.firstName || 'Seller')) }}.
             </h1>
-            <p class="text-lg text-zinc-400">Here's what's happening with your store today.</p>
+            <p class="text-lg text-zinc-400">{{ sellerProfile().description || "Here's what's happening with your store today." }}</p>
           </div>
-          <button type="button" class="button-secondary px-6">View Store</button>
         </div>
 
         <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -46,14 +43,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
 
         @if (hasSalesData()) {
           <app-panel-card title="Sales Overview">
-            <div class="flex items-center justify-end">
-              <span class="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-2 text-sm text-zinc-300">Last 7 days</span>
-            </div>
-            <div class="mt-5 h-64 flex items-center justify-center text-zinc-500">
-              <span class="text-sm">Sales chart integration pending backend data</span>
-            </div>
-
-            <div class="mt-6 grid gap-4 md:grid-cols-4">
+            <div class="grid gap-4 md:grid-cols-4">
               @for (entry of metrics(); track entry.label) {
                 <div class="border-l border-white/8 pl-4 first:border-l-0 first:pl-0">
                   <p class="text-sm text-zinc-500">{{ entry.label }}</p>
@@ -72,50 +62,17 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
           </app-panel-card>
         }
 
-        <app-panel-card title="Quick Actions">
-          <div class="grid gap-3 sm:grid-cols-2">
-            <button type="button" class="button-secondary w-full justify-start">
-              <app-icon name="plus" [size]="18" className="text-zinc-200" />
-              Add new product
-            </button>
-            <button type="button" class="button-secondary w-full justify-start">
-              <app-icon name="store" [size]="18" className="text-zinc-200" />
-              Edit store profile
-            </button>
-            <button type="button" class="button-secondary w-full justify-start">
-              <app-icon name="image" [size]="18" className="text-zinc-200" />
-              Add store banner
-            </button>
-            <button type="button" class="button-secondary w-full justify-start">
-              <app-icon name="settings" [size]="18" className="text-zinc-200" />
-              Configure settings
-            </button>
-          </div>
-        </app-panel-card>
-
-        <div class="panel-dark flex items-center justify-between gap-4 p-5">
-          <div class="flex items-center gap-4">
-            <span class="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
-              <app-icon name="sparkles" [size]="20" className="text-zinc-100" />
-            </span>
-            <div>
-              <p class="text-xl font-semibold text-white">Pro Tip</p>
-              <p class="mt-1 text-sm text-zinc-400">Use promoted listings to get more visibility and increase sales.</p>
-            </div>
-          </div>
-          <button type="button" class="button-secondary px-6">Promote Listings</button>
-        </div>
       </section>
 
       <aside class="space-y-5">
         <app-panel-card title="Recent Orders">
           @if (recentOrders().length) {
             <div class="space-y-4">
-              @for (order of recentOrders(); track order.id) {
+              @for (order of recentOrders(); track order.orderId) {
                 <div class="flex items-center gap-4 rounded-[22px] border border-white/8 bg-white/[0.03] p-4">
                   <div class="min-w-0 flex-1">
                     <p class="line-clamp-1 text-base font-semibold text-white">Order #{{ order.orderNumber }}</p>
-                    <p class="mt-1 text-sm text-zinc-500">{{ order.items.length }} item(s)</p>
+                    <p class="mt-1 text-sm text-zinc-500">{{ order.createdAt | date: 'mediumDate' }}</p>
                   </div>
                   <div class="text-right">
                     <p class="rounded-full px-3 py-1 text-xs font-semibold" [ngClass]="{
@@ -137,31 +94,24 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
           }
         </app-panel-card>
 
-        <app-panel-card title="Announcements">
-          @if (announcements().length) {
+        <app-panel-card title="Top Products">
+          @if (topProducts().length) {
             <div class="space-y-4">
-              @for (announcement of announcements(); track announcement.title) {
-                <div class="rounded-[22px] border border-white/8 bg-white/[0.03] p-4">
-                  <div class="flex items-start gap-4">
-                    <span class="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
-                      <app-icon [name]="announcement.icon" [size]="20" className="text-zinc-100" />
-                    </span>
-                    <div>
-                      <div class="flex flex-wrap items-center justify-between gap-3">
-                        <p class="text-lg font-semibold text-white">{{ announcement.title }}</p>
-                        <span class="text-xs text-zinc-500">{{ announcement.date }}</span>
-                      </div>
-                      <p class="mt-2 text-sm leading-6 text-zinc-400">{{ announcement.body }}</p>
-                    </div>
+              @for (product of topProducts(); track product.productId) {
+                <div class="rounded-md border border-white/8 bg-white/[0.03] p-4">
+                  <div class="flex items-start justify-between gap-4">
+                    <p class="line-clamp-2 text-base font-semibold text-white">{{ product.productName }}</p>
+                    <p class="shrink-0 text-sm font-semibold text-white">{{ product.revenue | currency:'USD':'symbol':'1.2-2' }}</p>
                   </div>
+                  <p class="mt-2 text-sm text-zinc-500">{{ product.quantitySold }} sold</p>
                 </div>
               }
             </div>
           } @else {
             <app-empty-state
-              icon="megaphone"
-              title="No announcements"
-              message="Check back later for updates."
+              icon="package"
+              title="No product sales yet"
+              message="Products with completed order activity will appear here."
             />
           }
         </app-panel-card>
@@ -171,29 +121,13 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
 })
 export class SellerDashboardPageComponent {
   private readonly dashboard = inject(DashboardService);
-  private readonly catalog = inject(CatalogService);
-  private readonly ordersService = inject(OrdersService);
   readonly session = inject(SessionService);
 
   readonly sellerDashboard = toSignal(this.dashboard.getSellerDashboard(), {
-    initialValue: {
-      totalProducts: 0,
-      totalOrders: 0,
-      totalRevenue: 0,
-      pendingOrders: 0,
-      lowStockProducts: 0
-    }
+    initialValue: EMPTY_SELLER_DASHBOARD
   });
 
-  readonly sellerProducts = toSignal(
-    this.catalog
-      .listProducts({
-        sellerId: this.session.user()?.id ?? undefined,
-        size: 5
-      })
-      .pipe(map((response) => response.content)),
-    { initialValue: [] }
-  );
+  readonly sellerProfile = computed(() => this.sellerDashboard()?.profile ?? EMPTY_SELLER_DASHBOARD.profile);
 
   readonly statCards = computed(() => [
     {
@@ -225,25 +159,34 @@ export class SellerDashboardPageComponent {
   readonly hasSalesData = computed(() => (this.sellerDashboard()?.totalOrders ?? 0) > 0);
 
   readonly metrics = computed(() => {
-    const total = this.sellerDashboard()?.totalRevenue ?? 0;
+    const dashboard = this.sellerDashboard() ?? EMPTY_SELLER_DASHBOARD;
+    const averageOrder = dashboard.totalOrders > 0 ? dashboard.totalRevenue / dashboard.totalOrders : 0;
     return [
-      { label: 'Total Revenue', value: total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }
+      { label: 'Total Revenue', value: dashboard.totalRevenue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) },
+      { label: 'Orders Received', value: dashboard.totalOrders },
+      { label: 'Pending Orders', value: dashboard.pendingOrders },
+      { label: 'Average Order', value: averageOrder.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }
     ];
   });
 
-  readonly recentOrders = toSignal(this.ordersService.loadMyOrders().pipe(map((orders) => orders.slice(0, 5))), {
-    initialValue: []
-  });
-  readonly announcements = toSignal(
-    map(() => [
-      {
-        icon: 'megaphone',
-        title: 'Seller tools update',
-        body: 'New analytics and listing tools are being rolled out this week.',
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      }
-    ])(this.dashboard.getSellerDashboard()),
-    { initialValue: [] as { icon: string; title: string; body: string; date: string }[] }
-  );
+  readonly recentOrders = computed(() => this.sellerDashboard()?.recentOrders ?? []);
+  readonly topProducts = computed(() => this.sellerDashboard()?.topProducts ?? []);
 }
 
+const EMPTY_SELLER_DASHBOARD: SellerDashboard = {
+  profile: {
+    sellerId: 0,
+    sellerName: '',
+    shopName: '',
+    description: '',
+    logoUrl: null,
+    rating: 0
+  },
+  totalProducts: 0,
+  totalOrders: 0,
+  totalRevenue: 0,
+  pendingOrders: 0,
+  lowStockProducts: 0,
+  topProducts: [],
+  recentOrders: []
+};

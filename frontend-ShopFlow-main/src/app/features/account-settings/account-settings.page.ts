@@ -36,11 +36,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
             <form class="grid gap-5 xl:grid-cols-[160px,1fr]" [formGroup]="profileForm">
               <div class="space-y-4">
                 <div class="relative h-36 w-36 overflow-hidden rounded-full border border-white/10 bg-white/[0.03]">
-                  <img
-                    class="h-full w-full object-cover"
-                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80"
-                    alt="Profile"
-                  />
+                  <div class="flex h-full w-full items-center justify-center text-3xl font-semibold text-white">
+                    {{ initials() }}
+                  </div>
                 </div>
                 <button type="button" class="button-secondary w-full justify-center">Update Photo</button>
               </div>
@@ -94,7 +92,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
             <div class="space-y-4 text-base">
               <div class="flex items-center justify-between">
                 <span class="text-zinc-400">Member Since</span>
-                <span class="text-white">Jan 12, 2026</span>
+                <span class="text-white">Unavailable</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-zinc-400">Account Type</span>
@@ -168,6 +166,9 @@ export class AccountSettingsPageComponent {
   readonly totalSpent = computed(() => this.orderList().reduce((total, order) => total + order.totalAmount, 0));
   readonly accountType = computed(() =>
     this.session.isSeller() ? 'Seller' : this.session.isCustomer() ? 'Buyer' : 'Member'
+  );
+  readonly initials = computed(() =>
+    `${this.session.user()?.firstName?.[0] ?? ''}${this.session.user()?.lastName?.[0] ?? ''}`.toUpperCase() || 'SF'
   );
 
   saveProfile(): void {

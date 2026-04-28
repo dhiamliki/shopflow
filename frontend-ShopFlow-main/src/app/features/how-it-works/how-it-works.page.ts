@@ -112,7 +112,7 @@ export class HowItWorksPageComponent {
       steps: [
         { index: '01', title: 'View order history', body: 'See every order, status change, and next action from your account area.' },
         { index: '02', title: 'Track delivery', body: 'Follow your order from processing to delivery with clear milestones.' },
-        { index: '03', title: 'Get support fast', body: 'Need help? Use built-in support actions without leaving the order view.' }
+        { index: '03', title: 'Review next steps', body: 'Use the order view to confirm shipment status, delivery timing, and available actions.' }
       ]
     },
     {

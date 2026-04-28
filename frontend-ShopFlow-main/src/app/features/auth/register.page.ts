@@ -6,20 +6,20 @@ import { finalize } from 'rxjs';
 import { UserRole } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
 import { SessionService } from '../../core/services/session.service';
+import { IconComponent } from '../../shared/components/icon.component';
 
 @Component({
   selector: 'app-register-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, IconComponent],
   template: `
-    <div class="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-10">
-      <div class="w-full max-w-[520px]">
-        <div class="text-center space-y-3 mb-8">
-          <h1 class="font-display text-4xl font-semibold text-white">Create your account</h1>
-          <p class="text-zinc-400">Join ShopFlow and start your journey.</p>
-        </div>
-
-        <form class="panel-dark p-8 space-y-6" [formGroup]="registerForm" (ngSubmit)="submitSignup()">
+    <div class="sf-page py-8">
+      <div class="panel-dark grid min-h-[760px] overflow-hidden lg:grid-cols-[0.58fr,0.42fr]">
+        <form class="mx-auto flex w-full max-w-[560px] flex-col justify-center space-y-6 p-8" [formGroup]="registerForm" (ngSubmit)="submitSignup()">
+          <div class="space-y-3">
+            <h1 class="font-display text-4xl font-semibold tracking-[-0.04em] text-white">Create your account</h1>
+            <p class="text-zinc-400">Join Shopflow and start your journey</p>
+          </div>
           <div class="flex rounded-full border border-white/12 bg-white/[0.04] p-1">
             <button
               type="button"
@@ -71,11 +71,17 @@ import { SessionService } from '../../core/services/session.service';
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="block space-y-3">
               <span class="text-sm font-semibold text-zinc-300">Password</span>
-              <input class="input-dark" type="password" formControlName="password" placeholder="Create a password" />
+              <span class="relative block">
+                <input class="input-dark pr-12" type="password" formControlName="password" placeholder="Create a password" />
+                <app-icon name="eye" [size]="17" className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+              </span>
             </label>
             <label class="block space-y-3">
               <span class="text-sm font-semibold text-zinc-300">Confirm password</span>
-              <input class="input-dark" type="password" formControlName="confirmPassword" placeholder="Confirm your password" />
+              <span class="relative block">
+                <input class="input-dark pr-12" type="password" formControlName="confirmPassword" placeholder="Confirm your password" />
+                <app-icon name="eye" [size]="17" className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+              </span>
             </label>
           </div>
 
@@ -99,6 +105,11 @@ import { SessionService } from '../../core/services/session.service';
             <a routerLink="/login" class="font-semibold text-white hover:underline">Log in</a>
           </p>
         </form>
+
+        <div
+          class="hidden border-l border-white/10 bg-cover bg-center grayscale lg:block"
+          style="background-image: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.54)), url('https://images.unsplash.com/photo-1607083206968-13611e3d76db?auto=format&fit=crop&w=1200&q=80');"
+        ></div>
       </div>
     </div>
   `

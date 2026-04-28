@@ -1,14 +1,15 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationService } from '../../core/services/navigation.service';
+import { MarketplaceMetricsService } from '../../core/services/marketplace-metrics.service';
 import { IconComponent } from '../../shared/components/icon.component';
 
 @Component({
   selector: 'app-about-page',
   standalone: true,
-  imports: [RouterLink, IconComponent],
+  imports: [IconComponent],
   template: `
-    <section class="mx-auto max-w-[1680px] px-4 py-8 lg:px-8">
+    <section class="sf-page py-8">
       <div class="grid gap-8 xl:grid-cols-[0.82fr,1fr] xl:items-center">
         <div class="space-y-7">
           <p class="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">About ShopFlow</p>
@@ -30,14 +31,26 @@ import { IconComponent } from '../../shared/components/icon.component';
         </div>
 
         <div
-          class="panel-dark min-h-[380px] overflow-hidden"
+          class="panel-dark min-h-[380px] overflow-hidden grayscale"
           style="background:
             linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.72)),
             url('https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1600&q=80') center / cover;"
         ></div>
-        </div>
+      </div>
 
-        <div class="mt-12 grid gap-8 xl:grid-cols-[1fr,0.58fr]">
+      <div class="mt-8 grid gap-5 border-y border-white/10 py-7 sm:grid-cols-2 lg:grid-cols-4">
+        @for (stat of stats(); track stat.label) {
+          <div class="flex items-center gap-4 border-white/10 lg:border-r lg:last:border-r-0">
+            <app-icon [name]="stat.icon" [size]="34" className="text-zinc-500" />
+            <div>
+              <p class="text-3xl font-semibold text-white">{{ stat.value }}</p>
+              <p class="text-sm text-zinc-400">{{ stat.label }}</p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="mt-12 grid gap-8 xl:grid-cols-[1fr,0.58fr]">
         <div>
           <h2 class="text-5xl font-semibold tracking-tight text-white">Our Values</h2>
         </div>
@@ -79,6 +92,15 @@ import { IconComponent } from '../../shared/components/icon.component';
 })
 export class AboutPageComponent {
   private readonly navigation = inject(NavigationService);
+  private readonly metricsService = inject(MarketplaceMetricsService);
+  private readonly metrics = toSignal(this.metricsService.getSnapshot(), {
+    initialValue: {
+      totalProducts: null,
+      totalCategories: null,
+      promotedProducts: null,
+      topSellingProducts: null
+    }
+  });
 
   onStartSelling(): void {
     this.navigation.navigateToSelling();
@@ -88,7 +110,7 @@ export class AboutPageComponent {
     {
       icon: 'shield',
       title: 'Trust First',
-      body: 'We build trust through secure transactions, transparent policies, and reliable support.'
+      body: 'We build trust through secure transactions, transparent policies, and reliable order records.'
     },
     {
       icon: 'sparkles',
@@ -99,6 +121,30 @@ export class AboutPageComponent {
       icon: 'chart',
       title: 'Empowerment',
       body: 'We help sellers grow their business and buyers discover products that fit their lives.'
+    },
+    {
+      icon: 'globe',
+      title: 'Community',
+      body: 'We are building a global community where opportunity and connection thrive.'
+    },
+    {
+      icon: 'lock',
+      title: 'Security',
+      body: 'We protect your data and transactions with industry-leading security standards.'
     }
   ];
+
+  readonly stats = computed(() => {
+    const metrics = this.metrics();
+    return [
+      { icon: 'bag', value: this.formatMetric(metrics.totalProducts), label: 'Live Products' },
+      { icon: 'grid', value: this.formatMetric(metrics.totalCategories), label: 'Categories' },
+      { icon: 'badge-percent', value: this.formatMetric(metrics.promotedProducts), label: 'Promotions' },
+      { icon: 'star', value: this.formatMetric(metrics.topSellingProducts), label: 'Top Selling Picks' }
+    ];
+  });
+
+  private formatMetric(value: number | null): string {
+    return value === null ? 'Unavailable' : value.toLocaleString('en-US');
+  }
 }

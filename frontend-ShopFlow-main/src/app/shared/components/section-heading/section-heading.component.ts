@@ -6,7 +6,7 @@ import { Component, input } from '@angular/core';
   template: `
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div class="space-y-1">
-        <h1 class="font-display text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+        <h1 class="font-display text-4xl font-semibold tracking-[-0.04em] text-white sm:text-[2.55rem]">
           {{ title() }}
         </h1>
         @if (subtitle()) {

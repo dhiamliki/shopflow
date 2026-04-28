@@ -27,7 +27,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
     PanelCardComponent
   ],
   template: `
-    <section class="mx-auto max-w-[1680px] px-4 py-8 lg:px-8">
+    <section class="sf-page py-8">
       @if (!session.isCustomer()) {
         <app-empty-state
           icon="lock"
@@ -55,10 +55,10 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
           <span>Order Complete</span>
         </nav>
 
-        <div class="grid gap-8 xl:grid-cols-[1fr,420px]">
+        <div class="grid gap-10 xl:grid-cols-[1fr,560px]">
           <section class="space-y-7" [formGroup]="checkoutForm">
             <div class="space-y-3">
-              <h1 class="font-display text-5xl font-semibold tracking-tight text-white sm:text-6xl">Checkout</h1>
+              <h1 class="font-display text-5xl font-semibold tracking-[-0.05em] text-white">Checkout</h1>
               <p class="text-lg text-zinc-400">
                 Complete your order by providing your details and payment information.
               </p>
@@ -68,11 +68,11 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               </p>
             </div>
 
-            <div class="panel-dark space-y-8 p-6 sm:p-8">
+            <div class="panel-dark space-y-7 p-6 sm:p-7">
               <section class="space-y-4">
                 <div class="flex items-center gap-3">
                   <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-sm font-semibold text-white">1</span>
-                  <h2 class="text-2xl font-semibold text-white">Shipping Information</h2>
+                  <h2 class="text-base font-semibold text-white">Shipping Information</h2>
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -91,10 +91,10 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               <section class="space-y-4">
                 <div class="flex items-center gap-3">
                   <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-sm font-semibold text-white">2</span>
-                  <h2 class="text-2xl font-semibold text-white">Shipping Method</h2>
+                  <h2 class="text-base font-semibold text-white">Shipping Method</h2>
                 </div>
 
-                <label class="flex items-center justify-between rounded-[22px] border border-white/10 bg-white/[0.03] px-5 py-4">
+                <label class="flex items-center justify-between rounded-md border border-white/10 bg-white/[0.03] px-5 py-4">
                   <span class="flex items-center gap-4">
                     <input type="radio" formControlName="shippingMethod" value="standard" class="accent-emerald-400" />
                     <span>
@@ -105,7 +105,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                   <span class="text-lg font-semibold text-white">Free</span>
                 </label>
 
-                <label class="flex items-center justify-between rounded-[22px] border border-white/10 bg-white/[0.03] px-5 py-4">
+                <label class="flex items-center justify-between rounded-md border border-white/10 bg-white/[0.03] px-5 py-4">
                   <span class="flex items-center gap-4">
                     <input type="radio" formControlName="shippingMethod" value="express" class="accent-emerald-400" />
                     <span>
@@ -120,13 +120,13 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               <section class="space-y-4">
                 <div class="flex items-center gap-3">
                   <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-sm font-semibold text-white">3</span>
-                  <h2 class="text-2xl font-semibold text-white">Payment Method</h2>
+                  <h2 class="text-base font-semibold text-white">Payment Method</h2>
                 </div>
 
                 <div class="grid gap-4 lg:grid-cols-[0.58fr,0.42fr]">
                   <div class="space-y-3">
                     @for (method of paymentMethods; track method.value) {
-                      <label class="flex items-center gap-4 rounded-[22px] border border-white/10 bg-white/[0.03] px-5 py-4">
+                      <label class="flex items-center gap-4 rounded-md border border-white/10 bg-white/[0.03] px-5 py-4">
                         <input type="radio" formControlName="paymentMethod" [value]="method.value" class="accent-emerald-400" />
                         <span class="flex items-center gap-3">
                           <app-icon [name]="method.icon" [size]="18" className="text-zinc-200" />
@@ -153,8 +153,9 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                 </p>
               }
 
-              <button type="button" class="button-primary w-full text-lg" (click)="placeOrder()" [disabled]="submitting()">
-                Place Order &bull; {{ summary().total | currency: 'USD' : 'symbol' : '1.2-2' }}
+              <button type="button" class="button-primary w-full text-base" (click)="placeOrder()" [disabled]="submitting()">
+                Place Order <span>&bull;</span> <strong>{{ summary().total | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+                <app-icon name="lock" [size]="16" className="ml-auto text-black" />
               </button>
             </div>
           </section>
@@ -247,9 +248,9 @@ export class CheckoutPageComponent {
     country: ['United States', Validators.required],
     shippingMethod: 'standard',
     paymentMethod: 'card',
-    cardNumber: ['1234 5678 9012 3456', Validators.required],
-    expirationDate: ['09 / 28', Validators.required],
-    cvc: ['123', Validators.required],
+    cardNumber: ['', Validators.required],
+    expirationDate: ['', Validators.required],
+    cvc: ['', Validators.required],
     nameOnCard: ['', Validators.required]
   });
 
@@ -302,11 +303,6 @@ export class CheckoutPageComponent {
       icon: 'arrow-left',
       title: '30-Day Returns',
       body: 'Not satisfied? Get a full refund within 30 days.'
-    },
-    {
-      icon: 'headset',
-      title: '24/7 Support',
-      body: 'We are here to help you anytime you need it.'
     }
   ];
 

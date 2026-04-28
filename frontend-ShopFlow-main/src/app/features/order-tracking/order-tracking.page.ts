@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map, of, switchMap } from 'rxjs';
 import { OrderItem, Product } from '../../core/models/commerce.models';
 import { CatalogService } from '../../core/services/catalog.service';
+import { CartService } from '../../core/services/cart.service';
 import { OrdersService } from '../../core/services/orders.service';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
@@ -29,9 +30,9 @@ type TrackingOrderItem = OrderItem & { product: Product };
 
       <div class="panel-dark grid gap-4 p-6 lg:grid-cols-[1fr,1fr,120px] lg:items-center">
         <div>
-          <p class="text-sm text-zinc-500">Estimated Delivery</p>
-          <p class="mt-2 text-4xl font-semibold text-emerald-300">{{ estimatedDelivery() }}</p>
-          <p class="mt-1 text-sm text-zinc-400">By 8:00 PM</p>
+          <p class="text-sm text-zinc-500">Order Date</p>
+          <p class="mt-2 text-4xl font-semibold text-emerald-300">{{ orderDate() }}</p>
+          <p class="mt-1 text-sm text-zinc-400">Order #{{ current.orderNumber }}</p>
         </div>
         <div>
           <p class="text-sm text-zinc-500">Current Status</p>
@@ -72,12 +73,12 @@ type TrackingOrderItem = OrderItem & { product: Product };
         <app-panel-card title="Tracking Details">
           <div class="flex items-center justify-between gap-4 rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
             <div>
-              <p class="text-sm text-zinc-500">Carrier</p>
-              <p class="mt-2 text-2xl font-semibold text-white">FedEx Express</p>
+              <p class="text-sm text-zinc-500">Current Status</p>
+              <p class="mt-2 text-2xl font-semibold text-white">{{ displayStatus() }}</p>
             </div>
             <div>
-              <p class="text-sm text-zinc-500">Tracking Number</p>
-              <p class="mt-2 text-2xl font-semibold text-white">{{ trackingNumber() }}</p>
+              <p class="text-sm text-zinc-500">Last Updated</p>
+              <p class="mt-2 text-2xl font-semibold text-white">{{ statusUpdatedAt() }}</p>
             </div>
           </div>
 
@@ -129,15 +130,10 @@ type TrackingOrderItem = OrderItem & { product: Product };
             <p class="whitespace-pre-line text-base leading-8 text-zinc-300">{{ shippingAddress() }}</p>
           </app-panel-card>
 
-          <app-panel-card title="Need Help?">
-            <p class="text-sm leading-7 text-zinc-400">If you have any questions about your order, our support team is here to help.</p>
-            <a href="mailto:support@shopflow.com" class="button-secondary mt-6 w-full justify-center">Contact Support</a>
-          </app-panel-card>
-
           <app-panel-card title="More Actions">
             <div class="space-y-3">
               @for (action of moreActions; track action) {
-                <button type="button" class="flex w-full items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-left text-sm text-zinc-300 hover:text-white">
+                <button type="button" class="flex w-full items-center justify-between rounded-md border border-white/8 bg-white/[0.03] px-4 py-3 text-left text-sm text-zinc-300 hover:text-white" (click)="handleAction(action)">
                   <span>{{ action }}</span>
                   <app-icon name="chevron-right" [size]="16" className="text-zinc-500" />
                 </button>
@@ -158,6 +154,7 @@ export class OrderTrackingPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly orders = inject(OrdersService);
   private readonly catalog = inject(CatalogService);
+  private readonly cart = inject(CartService);
 
   readonly order = toSignal(
     this.route.paramMap.pipe(
@@ -187,7 +184,7 @@ export class OrderTrackingPageComponent {
     { initialValue: [] as TrackingOrderItem[] }
   );
 
-  readonly moreActions = ['Return or Replace Items', 'Download Invoice', 'Buy Again'];
+  readonly moreActions = ['Download Invoice', 'Buy Again'];
 
   private orderOrThrow() {
     const order = this.order();
@@ -197,14 +194,16 @@ export class OrderTrackingPageComponent {
     return order;
   }
 
-  readonly trackingNumber = computed(() => `77382${this.orderOrThrow().id}10432`);
   readonly shippingAddress = computed(() => this.orderOrThrow().shippingAddress.replaceAll(', ', '\n'));
-  readonly estimatedDelivery = computed(() =>
-    new Date(new Date(this.orderOrThrow().createdAt).getTime() + 1000 * 60 * 60 * 24 * 4).toLocaleDateString('en-US', {
+  readonly orderDate = computed(() =>
+    new Date(this.orderOrThrow().createdAt).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
     })
+  );
+  readonly statusUpdatedAt = computed(() =>
+    new Date(this.orderOrThrow().statusUpdatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
   );
   readonly displayStatus = computed(() =>
     this.orderOrThrow().status === 'DELIVERED' ? 'Delivered' : this.orderOrThrow().status.replaceAll('_', ' ')
@@ -238,25 +237,25 @@ export class OrderTrackingPageComponent {
       {
         label: 'Processing',
         icon: 'package-open',
-        date: new Date(created.getTime() + 1000 * 60 * 60 * 4).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: index >= 1 ? statusUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending',
         complete: index >= 1
       },
       {
         label: 'Shipped',
         icon: 'truck',
-        date: statusUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: index >= 2 ? statusUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending',
         complete: index >= 2
       },
       {
         label: 'Out for Delivery',
         icon: 'map',
-        date: new Date(statusUpdated.getTime() + 1000 * 60 * 60 * 8).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: index >= 3 ? statusUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending',
         complete: index >= 3
       },
       {
         label: 'Delivered',
         icon: 'circle-check',
-        date: new Date(statusUpdated.getTime() + 1000 * 60 * 60 * 14).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: index >= 4 ? statusUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending',
         complete: index >= 4
       }
     ];
@@ -264,28 +263,10 @@ export class OrderTrackingPageComponent {
 
   readonly timeline = computed(() => [
     {
-      label: this.orderOrThrow().status === 'DELIVERED' ? 'Delivered' : 'Preparing final delivery',
+      label: this.orderOrThrow().status === 'DELIVERED' ? 'Delivered' : 'Status updated',
       body: this.statusMessage(),
       date: new Date(this.orderOrThrow().statusUpdatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
       complete: true
-    },
-    {
-      label: 'Out for Delivery',
-      body: 'Your package is out for delivery.',
-      date: new Date(new Date(this.orderOrThrow().statusUpdatedAt).getTime() - 1000 * 60 * 60 * 4).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
-      complete: this.progressIndex(this.orderOrThrow().status) >= 3
-    },
-    {
-      label: 'Arrived at Local Facility',
-      body: 'Your package has arrived at the delivery facility.',
-      date: new Date(new Date(this.orderOrThrow().statusUpdatedAt).getTime() - 1000 * 60 * 60 * 12).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
-      complete: this.progressIndex(this.orderOrThrow().status) >= 2
-    },
-    {
-      label: 'In Transit',
-      body: 'Your package is on the way.',
-      date: new Date(new Date(this.orderOrThrow().createdAt).getTime() + 1000 * 60 * 60 * 18).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
-      complete: this.progressIndex(this.orderOrThrow().status) >= 2
     },
     {
       label: 'Order Placed',
@@ -308,6 +289,25 @@ export class OrderTrackingPageComponent {
         return 4;
       default:
         return 0;
+    }
+  }
+
+  handleAction(action: string): void {
+    if (action === 'Download Invoice') {
+      window.print();
+      return;
+    }
+
+    if (action === 'Buy Again') {
+      const order = this.order();
+      if (!order) return;
+      for (const item of order.items) {
+        this.cart.addItem({
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity
+        }).subscribe();
+      }
     }
   }
 }

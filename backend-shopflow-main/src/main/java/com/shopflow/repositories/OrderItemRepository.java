@@ -33,6 +33,26 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<Object[]> findTopProductsStats(Pageable pageable);
 
     @Query("""
+            select oi.product.id, oi.product.name, sum(oi.quantity), coalesce(sum(oi.totalPrice),0)
+            from OrderItem oi
+            where oi.product.seller.id = :sellerId
+              and oi.order.status <> 'CANCELLED'
+            group by oi.product.id, oi.product.name
+            order by sum(oi.quantity) desc
+            """)
+    List<Object[]> findTopProductsStatsBySellerId(@Param("sellerId") Long sellerId, Pageable pageable);
+
+    @Query("""
+            select oi.order.id, oi.order.orderNumber, oi.order.status, coalesce(sum(oi.totalPrice),0), oi.order.createdAt
+            from OrderItem oi
+            where oi.product.seller.id = :sellerId
+              and oi.order.status <> 'CANCELLED'
+            group by oi.order.id, oi.order.orderNumber, oi.order.status, oi.order.createdAt
+            order by oi.order.createdAt desc
+            """)
+    List<Object[]> findRecentOrdersBySellerId(@Param("sellerId") Long sellerId, Pageable pageable);
+
+    @Query("""
             select oi.product.seller.id, concat(oi.product.seller.firstName, ' ', oi.product.seller.lastName), coalesce(sum(oi.totalPrice),0)
             from OrderItem oi
             where oi.order.status <> 'CANCELLED'

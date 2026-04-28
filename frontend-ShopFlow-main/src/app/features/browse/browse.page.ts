@@ -26,142 +26,140 @@ import { SectionHeadingComponent } from '../../shared/components/section-heading
     SectionHeadingComponent
   ],
   template: `
-    <section class="mx-auto max-w-[1700px] px-4 py-6 lg:px-8">
-      <app-section-heading
-        title="Browse Products"
-        subtitle="Explore thousands of products from trusted sellers across every category."
-      />
+    <section class="sf-page py-10" [formGroup]="filtersForm">
+      <div class="grid gap-5 xl:grid-cols-[248px,1fr] xl:items-end">
+        <app-section-heading
+          title="Browse Products"
+          subtitle="Explore thousands of products from trusted sellers across every category."
+        />
 
-      <!-- Horizontal Category Navigation -->
-      <div class="mt-6 overflow-x-auto">
-        <div class="flex gap-3 pb-2">
-          <button
-            type="button"
-            class="shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-            [ngClass]="
-              filtersForm.controls.categoryId.value === 0
-                ? 'border-emerald-400/25 bg-emerald-500/12 text-white'
-                : 'border-white/8 bg-white/[0.02] text-zinc-300 hover:border-white/14 hover:bg-white/[0.04]'
-            "
-            (click)="filtersForm.patchValue({ categoryId: 0 })"
-          >
-            All Categories
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center xl:justify-end">
+          <button type="button" class="button-secondary h-11 px-4 xl:hidden" (click)="filterDrawerOpen.set(true)">
+            <app-icon name="filters" [size]="16" className="text-zinc-200" />
+            Filters
           </button>
-          @for (category of flatCategories(); track category.id) {
+          <div class="panel-dark flex h-11 w-full max-w-[500px] items-center gap-3 px-3.5">
+            <app-icon name="search" [size]="18" className="text-zinc-500" />
+            <input
+              formControlName="search"
+              type="text"
+              placeholder="Search products, brands or categories..."
+              class="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-500"
+            />
+          </div>
+          <label class="panel-dark flex h-11 min-w-[190px] items-center gap-2 px-3 text-sm text-zinc-300">
+            <span>Sort by:</span>
+            <select class="select-dark select-compact flex-1 border-0 bg-transparent px-0" formControlName="sortBy">
+              <option value="newest">Newest</option>
+              <option value="popularity">Most Popular</option>
+              <option value="price">Price</option>
+            </select>
+          </label>
+          <div class="panel-dark flex h-11 items-center gap-2 px-1.5">
             <button
               type="button"
-              class="shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition"
-              [ngClass]="
-                filtersForm.controls.categoryId.value === category.id
-                  ? 'border-emerald-400/25 bg-emerald-500/12 text-white'
-                  : 'border-white/8 bg-white/[0.02] text-zinc-300 hover:border-white/14 hover:bg-white/[0.04]'
-              "
-              (click)="filtersForm.patchValue({ categoryId: category.id })"
+              class="icon-button h-9 w-9"
+              [ngClass]="viewMode() === 'grid' ? 'border-white/18 bg-white/10' : ''"
+              (click)="viewMode.set('grid')"
             >
-              {{ category.name }}
+              <app-icon name="grid" [size]="18" className="text-zinc-200" />
             </button>
-          }
+            <button
+              type="button"
+              class="icon-button h-9 w-9"
+              [ngClass]="viewMode() === 'compact' ? 'border-white/18 bg-white/10' : ''"
+              (click)="viewMode.set('compact')"
+            >
+              <app-icon name="list" [size]="18" className="text-zinc-200" />
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="mt-6 grid gap-6 xl:grid-cols-[280px,1fr]">
-        <!-- Sidebar: Functional Filters Only -->
-        <aside class="space-y-4">
-          <div class="sticky top-28 space-y-4">
-            <app-panel-card className="p-0">
-              <div class="border-b border-white/8 px-5 py-5">
-                <div class="flex items-center justify-between">
-                  <h2 class="text-2xl font-semibold text-white">Filters</h2>
-                  <button type="button" class="text-sm font-medium text-zinc-400 hover:text-white" (click)="clearFilters()">
-                    Clear all
-                  </button>
-                </div>
-              </div>
+      @if (filterDrawerOpen()) {
+        <div class="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm xl:hidden" (click)="filterDrawerOpen.set(false)">
+          <aside class="ml-auto h-full w-[min(90vw,360px)] overflow-y-auto border-l border-white/10 bg-zinc-950 p-4 shadow-2xl" (click)="$event.stopPropagation()">
+            <div class="mb-4 flex items-center justify-between">
+              <h2 class="text-base font-semibold text-white">Filters</h2>
+              <button type="button" class="icon-button h-9 w-9" (click)="filterDrawerOpen.set(false)">
+                <app-icon name="x" [size]="17" className="text-zinc-200" />
+              </button>
+            </div>
+            <ng-container *ngTemplateOutlet="filtersPanel"></ng-container>
+          </aside>
+        </div>
+      }
 
-              <div class="space-y-7 px-5 py-6">
-                <!-- Price Range -->
-                <section class="space-y-4">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                      Price Range
-                    </h3>
-                    <app-icon name="chevron-down" [size]="16" className="text-zinc-500" />
-                  </div>
-                  <div class="grid grid-cols-2 gap-3">
-                    <label class="space-y-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                      Min
-                      <input type="number" class="input-dark" formControlName="minPrice" />
-                    </label>
-                    <label class="space-y-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                      Max
-                      <input type="number" class="input-dark" formControlName="maxPrice" />
-                    </label>
-                  </div>
-                </section>
-
-                <!-- Promo Filter -->
-                <section class="space-y-4">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-500">
-                      Offers
-                    </h3>
-                    <app-icon name="chevron-down" [size]="16" className="text-zinc-500" />
-                  </div>
-                  <label
-                    class="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-3 text-sm text-zinc-300"
-                  >
-                    <input type="checkbox" class="accent-emerald-400" formControlName="promo" />
-                    Only show promotional prices
-                  </label>
-                </section>
+      <ng-template #filtersPanel>
+        <app-panel-card className="p-0">
+          <div class="border-b border-white/8 px-4 py-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-base font-semibold text-white">Filters</h2>
+                <p class="mt-1 text-xs text-zinc-500">{{ selectedCategoryName() }}</p>
               </div>
-            </app-panel-card>
+              <button type="button" class="text-xs font-medium text-zinc-400 hover:text-white" (click)="clearFilters()">
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-4 px-4 py-4">
+            <section class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Categories</h3>
+                <app-icon name="chevron-down" [size]="14" className="text-zinc-600" />
+              </div>
+              <label class="flex min-h-8 items-center gap-2.5 text-sm text-zinc-300">
+                <input type="radio" name="browse-category" class="sf-check h-3.5 w-3.5" [checked]="filtersForm.controls.categoryId.value === 0" (change)="filtersForm.patchValue({ categoryId: 0 })" />
+                All Categories
+              </label>
+              @for (category of flatCategories().slice(0, 8); track category.id) {
+                <label class="flex min-h-8 items-center gap-2.5 text-sm text-zinc-400 transition hover:text-white">
+                  <input
+                    type="radio"
+                    name="browse-category"
+                    class="sf-check h-3.5 w-3.5"
+                    [checked]="filtersForm.controls.categoryId.value === category.id"
+                    (change)="filtersForm.patchValue({ categoryId: category.id })"
+                  />
+                  <span class="line-clamp-1">{{ category.name }}</span>
+                </label>
+              }
+            </section>
+
+            <div class="border-t border-white/8"></div>
+
+            <section class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Price</h3>
+                <span class="text-xs font-medium text-zinc-300">&#36;{{ filtersForm.controls.maxPrice.value }}</span>
+              </div>
+              <input type="range" class="w-full accent-white" formControlName="maxPrice" min="1" max="900" />
+              <div class="flex justify-between text-xs text-zinc-500">
+                <span>$0</span>
+                <span>$900+</span>
+              </div>
+            </section>
+
+            <div class="border-t border-white/8"></div>
+
+            <label class="flex min-h-9 items-center justify-between gap-3 text-sm text-zinc-300">
+              <span>Promotions only</span>
+              <input type="checkbox" class="sf-check h-4 w-4" formControlName="promo" />
+            </label>
+          </div>
+        </app-panel-card>
+      </ng-template>
+
+      <div class="mt-5 grid gap-5 xl:grid-cols-[248px,1fr]">
+        <aside class="hidden xl:block">
+          <div class="sticky top-24">
+            <ng-container *ngTemplateOutlet="filtersPanel"></ng-container>
           </div>
         </aside>
 
         <section class="space-y-6">
-          <div class="flex flex-col gap-4 xl:flex-row xl:items-center">
-            <div class="panel-dark flex flex-1 items-center gap-3 px-4 py-3.5">
-              <app-icon name="search" [size]="18" className="text-zinc-500" />
-              <input
-                formControlName="search"
-                type="text"
-                placeholder="Search products, brands or categories..."
-                class="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-500"
-              />
-            </div>
-
-            <div class="flex gap-3">
-              <label class="panel-dark flex min-w-[220px] items-center gap-3 px-4 py-3.5 text-sm text-zinc-300">
-                <span>Sort by:</span>
-                <select class="w-full bg-transparent text-right text-white outline-none" formControlName="sortBy">
-                  <option value="newest">Newest</option>
-                  <option value="popularity">Most Popular</option>
-                  <option value="price">Price</option>
-                </select>
-              </label>
-
-              <div class="panel-dark flex items-center gap-2 px-2 py-2">
-                <button
-                  type="button"
-                  class="icon-button"
-                  [ngClass]="viewMode() === 'grid' ? 'border-white/16 bg-white/7' : ''"
-                  (click)="viewMode.set('grid')"
-                >
-                  <app-icon name="grid" [size]="18" className="text-zinc-200" />
-                </button>
-                <button
-                  type="button"
-                  class="icon-button"
-                  [ngClass]="viewMode() === 'compact' ? 'border-white/16 bg-white/7' : ''"
-                  (click)="viewMode.set('compact')"
-                >
-                  <app-icon name="list" [size]="18" className="text-zinc-200" />
-                </button>
-              </div>
-            </div>
-          </div>
-
           @if (productPage().content.length) {
             <div
               class="grid gap-5"
@@ -172,6 +170,7 @@ import { SectionHeadingComponent } from '../../shared/components/section-heading
                   [product]="product"
                   [context]="viewMode()"
                   [showSeller]="false"
+                  [showActions]="false"
                 />
               }
             </div>
@@ -239,6 +238,7 @@ export class BrowsePageComponent {
 
   readonly page = signal(0);
   readonly viewMode = signal<'grid' | 'compact'>('grid');
+  readonly filterDrawerOpen = signal(false);
 
   readonly filtersForm = this.fb.nonNullable.group({
     search: this.route.snapshot.queryParamMap.get('q') ?? '',
@@ -254,6 +254,14 @@ export class BrowsePageComponent {
   });
 
   readonly flatCategories = computed(() => this.categoriesService.flattenCategories(this.categories()));
+  readonly selectedCategoryName = computed(() => {
+    const categoryId = this.filtersForm.controls.categoryId.value;
+    if (!categoryId) {
+      return 'All categories';
+    }
+
+    return this.flatCategories().find((category) => category.id === categoryId)?.name ?? 'Selected category';
+  });
 
   readonly productPage = toSignal(
     combineLatest([

@@ -1,16 +1,21 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavSection } from '../../core/models/ui.models';
-import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
 import { SidebarNavComponent } from '../../shared/components/sidebar-nav/sidebar-nav.component';
 import { TopNavComponent } from '../../shared/components/top-nav/top-nav.component';
 
 const SELLER_SECTIONS: NavSection[] = [
   {
-    label: 'Seller Hub',
+    label: '',
     items: [
       { label: 'Dashboard', route: '/seller/dashboard', icon: 'dashboard' },
-      { label: 'Create Listing', route: '/seller/create-listing', icon: 'plus' },
+      { label: 'Listings', route: '/seller/create-listing', icon: 'receipt' },
+      { label: 'Orders', route: '/seller/dashboard', icon: 'package' },
+      { label: 'Payouts', route: '/seller/dashboard', icon: 'circle-dollar' },
+      { label: 'Analytics', route: '/seller/dashboard', icon: 'analytics' },
+      { label: 'Reviews', route: '/seller/dashboard', icon: 'star' },
+      { label: 'Store', route: '/seller/dashboard', icon: 'store' },
+      { label: 'Marketing', route: '/seller/dashboard', icon: 'megaphone' },
       { label: 'Settings', route: '/account/settings', icon: 'settings' }
     ]
   }
@@ -19,28 +24,19 @@ const SELLER_SECTIONS: NavSection[] = [
 @Component({
   selector: 'app-seller-shell',
   standalone: true,
-  imports: [RouterOutlet, TopNavComponent, SidebarNavComponent, PanelCardComponent],
+  imports: [RouterOutlet, TopNavComponent, SidebarNavComponent],
   template: `
     <div class="min-h-screen bg-black text-white">
       <app-top-nav mode="seller" />
 
-      <div class="mx-auto grid max-w-[1750px] gap-6 px-4 py-6 lg:grid-cols-[238px,1fr] lg:px-8">
-        <aside class="space-y-6">
+      <div class="mx-auto grid max-w-[1800px] lg:grid-cols-[270px,1fr]">
+        <aside class="hidden border-r border-white/10 px-5 py-8 lg:block">
           <div class="sticky top-28 space-y-6">
             <app-sidebar-nav [sections]="sections" />
-
-            <app-panel-card
-              title="Need Help?"
-              subtitle="We are here to help you with selling, payouts, and storefront setup."
-            >
-              <a href="mailto:support@shopflow.com" class="button-secondary w-full justify-center">
-                Contact Support
-              </a>
-            </app-panel-card>
           </div>
         </aside>
 
-        <section class="min-w-0">
+        <section class="min-w-0 px-4 py-8 lg:px-8">
           <router-outlet />
         </section>
       </div>

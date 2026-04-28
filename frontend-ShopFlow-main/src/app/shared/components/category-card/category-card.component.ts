@@ -5,14 +5,32 @@ import { GlowSurfaceDirective } from '../../directives/glow-surface.directive';
 import { IconComponent } from '../icon.component';
 
 const CATEGORY_ICONS: Record<string, string> = {
-  Fashion: 'bag',
-  Electronics: 'dashboard',
+  Fashion: 'user',
+  Electronics: 'phone',
   'Home & Living': 'home',
   Accessories: 'bag',
   Sports: 'star',
   Beauty: 'sparkles',
+  'Kids & Toys': 'grid',
   Books: 'receipt',
+  'Books & Stationery': 'receipt',
+  Automotive: 'truck',
+  'Automotive & Tools': 'truck',
   'More Categories': 'grid'
+};
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  Fashion: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=80',
+  Electronics: 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=900&q=80',
+  'Home & Living': 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80',
+  Accessories: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=900&q=80',
+  Sports: 'https://images.unsplash.com/photo-1519861531473-9200262188bf?auto=format&fit=crop&w=900&q=80',
+  Beauty: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=80',
+  'Kids & Toys': 'https://images.unsplash.com/photo-1618842676088-c4d48a6a7c9d?auto=format&fit=crop&w=900&q=80',
+  Books: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80',
+  'Books & Stationery': 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80',
+  Automotive: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=80',
+  'Automotive & Tools': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=80'
 };
 
 @Component({
@@ -24,12 +42,12 @@ const CATEGORY_ICONS: Record<string, string> = {
       appGlowSurface
       [routerLink]="['/browse']"
       [queryParams]="{ categoryId: category().id }"
-      class="panel-dark group flex h-full flex-col overflow-hidden p-4 transition-transform duration-200 hover:-translate-y-0.5 sm:p-5"
+      class="panel-dark group flex h-full min-h-[300px] flex-col overflow-hidden p-4 transition-transform duration-200 hover:border-white/20 sm:p-5"
     >
-      <div class="relative aspect-[1.18/1] overflow-hidden rounded-[24px] border border-white/6 bg-white/[0.03]">
+      <div class="sf-image-well relative aspect-[1.42/1] overflow-hidden rounded-md">
         @if (categoryImage()) {
           <img
-            class="h-full w-full object-cover opacity-90 transition duration-300 group-hover:scale-[1.03]"
+            class="h-full w-full object-cover opacity-70 grayscale transition duration-300 group-hover:scale-[1.03]"
             [src]="categoryImage()"
             [alt]="category().name"
           />
@@ -38,15 +56,15 @@ const CATEGORY_ICONS: Record<string, string> = {
         }
         <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
         <span
-          class="absolute bottom-4 left-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/45 backdrop-blur"
+          class="absolute bottom-4 left-4 flex h-11 w-11 items-center justify-center rounded-md border border-white/15 bg-black/45 backdrop-blur"
         >
           <app-icon [name]="iconName()" [size]="18" className="text-white" />
         </span>
       </div>
 
       <div class="mt-5 flex flex-1 flex-col">
-        <h3 class="text-[1.45rem] font-semibold text-white">{{ category().name }}</h3>
-        <p class="mt-3 text-sm leading-7 text-zinc-400">
+        <h3 class="text-base font-semibold text-white">{{ category().name }}</h3>
+        <p class="mt-3 text-sm leading-6 text-zinc-400">
           {{ category().description }}
         </p>
 
@@ -75,7 +93,7 @@ export class CategoryCardComponent {
     () => CATEGORY_ICONS[this.category().name] ?? CATEGORY_ICONS['More Categories']
   );
 
-  readonly categoryImage = computed(() => this.image());
+  readonly categoryImage = computed(() => this.image() ?? CATEGORY_IMAGES[this.category().name] ?? null);
 
   readonly itemCount = computed(() => this.count());
 }

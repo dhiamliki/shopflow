@@ -26,7 +26,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
   ],
   template: `
     @if (product(); as p) {
-      <section class="mx-auto max-w-[1700px] px-4 py-8 lg:px-8">
+      <section class="sf-page py-8">
         <nav class="mb-7 flex flex-wrap items-center gap-3 text-sm text-zinc-500">
           @for (crumb of breadcrumbs(); track crumb.label) {
             @if (crumb.route) {
@@ -49,11 +49,6 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   [src]="selectedImage()"
                   [alt]="p.name"
                 />
-                <span
-                  class="absolute left-4 top-4 rounded-full border border-amber-400/20 bg-amber-500/14 px-4 py-2 text-xs font-semibold text-amber-300"
-                >
-                  Best Seller
-                </span>
                 <button
                   type="button"
                   class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/45"
@@ -111,7 +106,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   </div>
                   <span>({{ reviewCount() }} reviews)</span>
                   <span>&bull;</span>
-                  <span>{{ soldCount() }}+ sold</span>
+                  <span>{{ soldCount() }} sold</span>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-4">
@@ -141,20 +136,6 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
               </div>
             </div>
 
-            <div class="space-y-5 border-t border-white/8 pt-6">
-              @for (feature of highlights; track feature.title) {
-                <div class="flex items-start gap-4">
-                  <span class="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
-                    <app-icon [name]="feature.icon" [size]="18" className="text-zinc-200" />
-                  </span>
-                  <div>
-                    <h3 class="text-lg font-semibold text-white">{{ feature.title }}</h3>
-                    <p class="mt-1 text-sm leading-6 text-zinc-400">{{ feature.body }}</p>
-                  </div>
-                </div>
-              }
-            </div>
-
             <button type="button" class="inline-flex items-center gap-2 text-base font-semibold text-white hover:text-zinc-300">
               View full specifications
               <app-icon name="arrow-right" [size]="18" className="text-white" />
@@ -172,7 +153,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                     </span>
                     <div>
                       <p class="text-2xl font-semibold text-white">{{ p.sellerName }}</p>
-                      <p class="text-sm text-zinc-400">{{ sellerConfidence() }} positive &middot; 2,340 reviews</p>
+                      <p class="text-sm text-zinc-400">Marketplace seller</p>
                     </div>
                   </div>
                 </div>
@@ -262,9 +243,9 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                 <div class="space-y-6 text-base leading-8 text-zinc-400">
                   <p>{{ p.description }}</p>
                   <ul class="list-disc space-y-3 pl-6">
-                    @for (detail of descriptionBullets; track detail) {
-                      <li>{{ detail }}</li>
-                    }
+                    <li>Seller: {{ p.sellerName }}</li>
+                    <li>Category: {{ p.categories.join(', ') }}</li>
+                    <li>Available stock: {{ p.stock }} units</li>
                   </ul>
                 </div>
               }
@@ -327,7 +308,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 
             <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               @for (item of relatedProducts(); track item.id) {
-                <app-product-card [product]="item" context="compact" [showSeller]="false" />
+                <app-product-card [product]="item" context="compact" [showSeller]="false" [showActions]="false" />
               }
             </div>
           </aside>
@@ -388,22 +369,18 @@ export class ProductDetailPageComponent {
   readonly wishlisted = computed(() => this.product() && this.workspace.isInWishlist(this.product()!.id));
   readonly reviewCount = computed(() => {
     const p = this.product();
-    return p ? Math.max(p.reviews.length, Math.round(p.averageRating * 260)) : 0;
+    return p ? p.reviews.length : 0;
   });
   readonly soldCount = computed(() => {
     const p = this.product();
-    return p ? Math.max(p.salesCount, 32) : 0;
-  });
-  readonly sellerConfidence = computed(() => {
-    const p = this.product();
-    return p ? `${Math.round(p.averageRating * 20.4)}%` : '0%';
+    return p ? p.salesCount : 0;
   });
   readonly estimatedDelivery = computed(() => {
     const start = new Date();
     const end = new Date();
     start.setDate(start.getDate() + 2);
     end.setDate(end.getDate() + 4);
-    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   });
   readonly discountLabel = computed(() => {
     const p = this.product();
@@ -424,28 +401,6 @@ export class ProductDetailPageComponent {
 
   readonly ratingStars = [1, 2, 3, 4, 5];
   readonly tabs = ['description', 'specifications', 'reviews', 'shipping'] as const;
-  readonly highlights = [
-    {
-      icon: 'sparkles',
-      title: 'Advanced performance',
-      body: 'Built for long sessions, focused listening, and reliable everyday use.'
-    },
-    {
-      icon: 'badge-check',
-      title: 'Up to all-day comfort',
-      body: 'Balanced fit, premium materials, and a feel designed for repeat wear.'
-    },
-    {
-      icon: 'dashboard',
-      title: 'Premium sound quality',
-      body: 'Detailed audio tuning with depth, clarity, and strong low-end response.'
-    },
-    {
-      icon: 'share',
-      title: 'Multipoint connection',
-      body: 'Move between devices without slowing down your day.'
-    }
-  ];
   readonly trustPoints = [
     {
       icon: 'shield-check',
@@ -456,17 +411,7 @@ export class ProductDetailPageComponent {
       icon: 'arrow-left',
       title: '30-Day Returns',
       body: 'Easy returns on eligible items if it is not the right fit.'
-    },
-    {
-      icon: 'shield',
-      title: 'Buyer Protection',
-      body: 'Get help with your order if something is not as described.'
     }
-  ];
-  readonly descriptionBullets = [
-    'Balanced sound with detailed highs, controlled bass, and rich voice clarity.',
-    'Lightweight feel designed for long listening sessions.',
-    'Responsive controls, fast pairing, and dependable everyday performance.'
   ];
   readonly specificationRows = computed(() => {
     const p = this.product();

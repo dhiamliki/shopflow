@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { map, switchMap } from 'rxjs';
 import { Order, Product } from '../../core/models/commerce.models';
 import { CatalogService } from '../../core/services/catalog.service';
+import { CartService } from '../../core/services/cart.service';
 import { OrdersService } from '../../core/services/orders.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon.component';
@@ -104,7 +105,7 @@ type OrderCard = Order & { leadProduct: Product | null };
                       </button>
                     }
                     @if (order.status === 'DELIVERED') {
-                      <button type="button" class="text-sm font-semibold text-zinc-300 hover:text-white">Buy Again</button>
+                      <button type="button" class="text-sm font-semibold text-zinc-300 hover:text-white" (click)="buyAgain(order)">Buy Again</button>
                     }
                   </div>
                 </article>
@@ -132,18 +133,6 @@ type OrderCard = Order & { leadProduct: Product | null };
             <a routerLink="/account/orders" class="button-primary mt-6 w-full justify-center">View All Orders</a>
           </app-panel-card>
 
-          <app-panel-card title="Need Help?">
-            <div class="space-y-4">
-              @for (help of helpLinks; track help.title) {
-                <div class="rounded-[22px] border border-white/8 bg-white/[0.03] p-4">
-                  <p class="text-lg font-semibold text-white">{{ help.title }}</p>
-                  <p class="mt-2 text-sm leading-6 text-zinc-400">{{ help.body }}</p>
-                </div>
-              }
-            </div>
-            <a href="mailto:support@shopflow.com" class="button-secondary mt-6 w-full justify-center">Contact Support</a>
-          </app-panel-card>
-
           <app-panel-card title="Shop With Confidence">
             <div class="space-y-4">
               @for (trust of trustItems; track trust.title) {
@@ -165,6 +154,7 @@ type OrderCard = Order & { leadProduct: Product | null };
 export class OrdersPageComponent {
   private readonly ordersService = inject(OrdersService);
   private readonly catalog = inject(CatalogService);
+  private readonly cart = inject(CartService);
 
   readonly activeTab = signal<'ALL' | 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'PAID'>('ALL');
 
@@ -197,20 +187,6 @@ export class OrdersPageComponent {
     { label: 'Cancelled', value: 'CANCELLED' as const }
   ];
   readonly progressSteps = ['Placed', 'Processing', 'Shipped', 'Delivered'];
-  readonly helpLinks = [
-    {
-      title: 'Where is my order?',
-      body: 'Track your order status and delivery progress.'
-    },
-    {
-      title: 'Returns & Refunds',
-      body: 'Request a return or check refund status.'
-    },
-    {
-      title: 'Help Center',
-      body: 'Find answers to common questions quickly.'
-    }
-  ];
   readonly trustItems = [
     {
       icon: 'shield-check',
@@ -220,7 +196,7 @@ export class OrdersPageComponent {
     {
       icon: 'shield',
       title: 'Buyer Protection',
-      body: 'Get help if your order is not as described.'
+      body: 'Order status and payment records stay attached to every purchase.'
     }
   ];
 
@@ -237,6 +213,16 @@ export class OrdersPageComponent {
     this.ordersService.cancelOrder(orderId).subscribe(() => {
       this.ordersService.loadMyOrders().subscribe();
     });
+  }
+
+  buyAgain(order: Order): void {
+    for (const item of order.items) {
+      this.cart.addItem({
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity
+      }).subscribe();
+    }
   }
 
   progressIndex(status: string): number {
@@ -271,5 +257,3 @@ export class OrdersPageComponent {
     }
   }
 }
-
-

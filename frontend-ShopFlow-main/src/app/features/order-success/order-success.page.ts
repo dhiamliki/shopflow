@@ -18,18 +18,18 @@ type EnrichedOrderItem = OrderItem & { product: Product };
   imports: [CommonModule, CurrencyPipe, RouterLink, IconComponent, ProductCardComponent],
   template: `
     @if (order(); as o) {
-      <section class="mx-auto max-w-[1680px] px-4 py-8 lg:px-8">
-        <div class="grid gap-8 xl:grid-cols-[1fr,460px]">
+      <section class="sf-page py-8">
+        <div class="grid gap-12 xl:grid-cols-[1fr,540px]">
           <section class="space-y-9">
-            <div class="space-y-5 text-center xl:text-left">
-              <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/20 bg-emerald-500/10 xl:mx-0">
+            <div class="space-y-5 text-center">
+              <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/10">
                 <app-icon name="circle-check" [size]="36" className="text-emerald-300" />
               </div>
               <div class="space-y-2">
-                <h1 class="font-display text-5xl font-semibold tracking-tight text-white sm:text-6xl">
+                <h1 class="font-display text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
                   Thank you, {{ firstName() }}!
                 </h1>
-                <p class="text-4xl font-semibold tracking-tight text-emerald-300">
+                <p class="text-2xl font-semibold tracking-tight text-emerald-300 sm:text-3xl">
                   Your order has been placed successfully.
                 </p>
                 <p class="text-lg text-zinc-400">
@@ -46,7 +46,7 @@ type EnrichedOrderItem = OrderItem & { product: Product };
                   </span>
                   <div>
                     <p class="text-sm text-zinc-500">{{ meta.label }}</p>
-                    <p class="mt-2 text-2xl font-semibold text-white">{{ meta.value }}</p>
+                    <p class="mt-2 text-lg font-semibold text-white">{{ meta.value }}</p>
                     @if (meta.note) {
                       <p class="mt-1 text-sm text-zinc-400">{{ meta.note }}</p>
                     }
@@ -56,14 +56,14 @@ type EnrichedOrderItem = OrderItem & { product: Product };
             </div>
 
             <div class="space-y-5">
-              <h2 class="text-3xl font-semibold text-white">What happens next?</h2>
+              <h2 class="text-xl font-semibold text-white">What happens next?</h2>
               <div class="grid gap-4 md:grid-cols-4">
                 @for (step of steps; track step.title) {
                   <div class="panel-dark p-5">
                     <span class="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
                       <app-icon [name]="step.icon" [size]="20" [className]="step.complete ? 'text-emerald-300' : 'text-zinc-300'" />
                     </span>
-                    <p class="mt-5 text-2xl font-semibold text-white">{{ step.title }}</p>
+                    <p class="mt-5 text-base font-semibold" [ngClass]="step.complete ? 'text-emerald-300' : 'text-white'">{{ step.title }}</p>
                     <p class="mt-2 text-sm leading-7 text-zinc-400">{{ step.body }}</p>
                   </div>
                 }
@@ -72,7 +72,7 @@ type EnrichedOrderItem = OrderItem & { product: Product };
 
             <div class="space-y-5">
               <div class="flex items-center justify-between">
-                <h2 class="text-3xl font-semibold text-white">You might also like</h2>
+                <h2 class="text-xl font-semibold text-white">You might also like</h2>
                 <div class="flex gap-2">
                   <button type="button" class="icon-button">
                     <app-icon name="chevron-left" [size]="18" className="text-zinc-200" />
@@ -85,7 +85,7 @@ type EnrichedOrderItem = OrderItem & { product: Product };
 
               <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 @for (item of recommendations(); track item.id) {
-                  <app-product-card [product]="item" context="compact" [showSeller]="false" />
+                  <app-product-card [product]="item" context="compact" [showSeller]="false" [showActions]="false" />
                 }
               </div>
             </div>
@@ -98,7 +98,7 @@ type EnrichedOrderItem = OrderItem & { product: Product };
 
           <aside class="space-y-5">
             <div class="panel-dark sticky top-28 p-6">
-              <h2 class="text-3xl font-semibold text-white">Order Summary</h2>
+              <h2 class="text-xl font-semibold text-white">Order Summary</h2>
               <div class="mt-6 space-y-4">
                 @for (item of enrichedItems(); track item.productId) {
                   <div class="flex items-center gap-4">
@@ -142,12 +142,6 @@ type EnrichedOrderItem = OrderItem & { product: Product };
                 <div class="flex items-start gap-3">
                   <app-icon name="map-pin" [size]="16" className="mt-1 text-zinc-500" />
                   <p class="text-zinc-400">{{ o.shippingAddress }}</p>
-                </div>
-                <div class="flex items-start gap-3">
-                  <app-icon name="navigation" [size]="16" className="mt-1 text-zinc-500" />
-                  <p class="text-zinc-400">
-                    Tracking number: <span class="font-semibold text-white">{{ trackingNumber() }}</span>
-                  </p>
                 </div>
               </div>
             </div>
@@ -214,8 +208,8 @@ export class OrderSuccessPageComponent {
         icon: 'calendar'
       },
       {
-        label: 'Payment Method',
-        value: 'Card **** 3456',
+        label: 'Order Total',
+        value: o.totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
         note: o.totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
         icon: 'card'
       }
@@ -244,13 +238,8 @@ export class OrderSuccessPageComponent {
     {
       icon: 'home',
       title: 'Delivered',
-      body: 'Enjoy your order. We are here if you need us.',
+      body: 'The delivery milestone appears after shipment is completed.',
       complete: false
     }
   ];
-
-  readonly trackingNumber = computed(() => {
-    const o = this.order();
-    return o ? `77382${o.id}10432` : '—';
-  });
 }

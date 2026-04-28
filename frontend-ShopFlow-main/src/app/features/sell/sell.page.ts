@@ -8,7 +8,7 @@ import { IconComponent } from '../../shared/components/icon.component';
   standalone: true,
   imports: [RouterLink, IconComponent],
   template: `
-    <section class="mx-auto max-w-[1680px] px-4 py-8 lg:px-8">
+    <section class="sf-page py-12">
       <div class="grid gap-8 xl:grid-cols-[0.9fr,1.02fr] xl:items-center">
         <div class="space-y-8">
           <div class="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-semibold text-zinc-300">
@@ -17,12 +17,12 @@ import { IconComponent } from '../../shared/components/icon.component';
           </div>
 
           <div class="space-y-5">
-            <h1 class="font-display text-6xl font-semibold tracking-tight text-white sm:text-7xl">
+            <h1 class="font-display text-6xl font-semibold tracking-[-0.06em] text-white sm:text-7xl">
               Sell smarter.<br />
               Grow faster.
             </h1>
             <p class="max-w-2xl text-2xl leading-10 text-zinc-400">
-              ShopFlow gives you everything you need to list, manage, and grow your business in one premium seller hub.
+              Shopflow gives you everything you need to list, manage, and grow your business - all in one place.
             </p>
           </div>
 
@@ -50,24 +50,70 @@ import { IconComponent } from '../../shared/components/icon.component';
           </div>
         </div>
 
-        <div class="panel-dark flex items-center justify-center p-8">
-          <div class="text-center space-y-4">
-            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
-              <app-icon name="store" [size]="28" className="text-zinc-100" />
+        <div class="panel-dark overflow-hidden p-3">
+          <div class="grid min-h-[430px] grid-cols-[170px,1fr]">
+            <aside class="border-r border-white/10 p-5">
+              <div class="mb-5 flex items-center gap-2 text-lg font-semibold">
+                <app-icon name="bag" [size]="20" className="text-white" />
+                shopflow
+              </div>
+              <div class="space-y-2 text-sm text-zinc-300">
+                @for (item of ['Dashboard', 'Listings', 'Orders', 'Messages', 'Analytics', 'Payouts', 'Reviews', 'Settings']; track item) {
+                  <div [class]="item === 'Dashboard' ? 'rounded-md bg-white/10 px-3 py-2' : 'rounded-md px-3 py-2'">{{ item }}</div>
+                }
+              </div>
+            </aside>
+            <div class="p-6">
+              <div class="mb-5 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-white">Overview</h3>
+                <button type="button" class="rounded-md border border-white/10 px-3 py-2 text-xs text-zinc-300">Last 30 days</button>
+              </div>
+              <div class="grid grid-cols-4 gap-3">
+                @for (metric of previewMetrics; track metric.label) {
+                  <div class="rounded-md border border-white/8 bg-white/[0.03] p-4">
+                    <p class="text-xs text-zinc-400">{{ metric.label }}</p>
+                    <p class="mt-2 text-2xl font-semibold text-white">{{ metric.value }}</p>
+                    <p class="mt-2 text-xs text-emerald-300">{{ metric.delta }}</p>
+                  </div>
+                }
+              </div>
+              <div class="mt-4 grid grid-cols-[1fr,260px] gap-4">
+                <div class="rounded-md border border-white/8 bg-white/[0.03] p-5">
+                  <div class="flex items-center justify-between">
+                    <p class="font-semibold text-white">Sales Overview</p>
+                    <span class="rounded-md bg-white px-3 py-1 text-xs font-semibold text-black">Live</span>
+                  </div>
+                  <div class="mt-5 h-40 rounded-md bg-[linear-gradient(180deg,rgba(73,217,130,.16),rgba(73,217,130,.02)),linear-gradient(to_right,rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.06)_1px,transparent_1px)] bg-[length:auto,80px_40px,80px_40px]"></div>
+                </div>
+                <div class="rounded-md border border-white/8 bg-white/[0.03] p-5">
+                  <div class="flex items-center justify-between">
+                    <p class="font-semibold text-white">Recent Orders</p>
+                    <span class="text-xs text-zinc-400">View all</span>
+                  </div>
+                  <div class="mt-4 space-y-3">
+                    @if (previewOrders.length) {
+                      @for (order of previewOrders; track order.id) {
+                      <div class="flex items-center justify-between gap-3 text-sm">
+                        <span>
+                          <span class="block font-semibold text-white">Order #{{ order.id }}</span>
+                          <span class="text-xs text-zinc-500">May {{ order.day }}, 2025</span>
+                        </span>
+                        <span class="font-semibold text-white">{{ order.total }}</span>
+                      </div>
+                      }
+                    } @else {
+                      <p class="text-sm text-zinc-500">Recent orders appear from backend order data.</p>
+                    }
+                  </div>
+                </div>
+              </div>
             </div>
-            <h3 class="text-2xl font-semibold text-white">Your seller dashboard</h3>
-            <p class="text-zinc-400 max-w-md">
-              Access real-time metrics, manage orders, and grow your store from one place.
-            </p>
-            <button type="button" (click)="onStartSelling()" class="button-secondary w-full justify-center mt-4">
-              Preview Dashboard
-            </button>
           </div>
         </div>
       </div>
 
       <div class="mt-12 space-y-10">
-        <h2 class="text-center text-5xl font-semibold tracking-tight text-white">Everything you need to succeed</h2>
+        <h2 class="text-center text-3xl font-semibold tracking-tight text-white">Everything you need to succeed</h2>
         <div class="grid gap-5 md:grid-cols-5">
           @for (benefit of benefits; track benefit.title) {
             <div class="flex items-start gap-4">
@@ -90,8 +136,8 @@ import { IconComponent } from '../../shared/components/icon.component';
           "
         >
           <div>
-            <h3 class="text-5xl font-semibold tracking-tight text-white">Ready to grow your business?</h3>
-            <p class="mt-3 text-lg text-zinc-400">Join thousands of sellers who are already earning on ShopFlow.</p>
+            <h3 class="text-3xl font-semibold tracking-tight text-white">Ready to grow your business?</h3>
+            <p class="mt-3 text-lg text-zinc-400">Join thousands of sellers who are already earning on Shopflow.</p>
           </div>
           <button type="button" (click)="onStartSelling()" class="button-primary px-8">
             Create Your Seller Account
@@ -152,11 +198,15 @@ export class SellPageComponent {
       icon: 'wallet',
       title: 'Payouts You Can Count On',
       body: 'Withdraw your earnings quickly and securely.'
-    },
-    {
-      icon: 'headset',
-      title: 'Support When You Need It',
-      body: 'Our support team is here to help you grow.'
     }
   ];
+
+  readonly previewMetrics = [
+    { label: 'Total Sales', value: 'Live', delta: 'From completed orders' },
+    { label: 'Orders', value: 'Live', delta: 'Seller-specific' },
+    { label: 'Active Listings', value: 'Live', delta: 'From product records' },
+    { label: 'Low Stock', value: 'Live', delta: 'From inventory records' }
+  ];
+
+  readonly previewOrders: Array<{ id: number; day: number; total: string }> = [];
 }

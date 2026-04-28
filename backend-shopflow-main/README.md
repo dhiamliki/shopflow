@@ -8,7 +8,7 @@ Spring Boot 3 backend for the ShopFlow marketplace project.
 - Spring Boot 3.3.x
 - Spring Security 6 + JWT (access + refresh)
 - Spring Data JPA + Specifications
-- H2 (dev) / PostgreSQL (prod)
+- PostgreSQL (dev/prod), with H2 retained only as a test/runtime dependency
 - OpenAPI (Springdoc)
 
 ## Run
@@ -18,7 +18,15 @@ Spring Boot 3 backend for the ShopFlow marketplace project.
 - JDK 21
 - Maven 3.9+
 
-### 2) Start in dev profile (H2)
+### 2) Start in dev profile (PostgreSQL)
+
+Create a local PostgreSQL database first, or override the connection with environment variables.
+
+Default connection:
+
+- URL: `jdbc:postgresql://localhost:5432/shopflow`
+- Username: `shopflow`
+- Password: `shopflow`
 
 ```bash
 mvn spring-boot:run
@@ -33,14 +41,18 @@ Default port: `9090`
 
 ## Profiles
 
-- `dev`: H2 in-memory DB (`application-dev.properties`)
+- `dev`: PostgreSQL (`application-dev.properties`)
 - `prod`: PostgreSQL (`application-prod.properties`)
 
 Active profile is controlled in `application.properties`:
 
 ```properties
-spring.profiles.active=dev
+spring.profiles.active=${SPRING_PROFILES_ACTIVE:dev}
 ```
+
+The marketplace seeder runs for `dev` and `prod` profiles. It upserts seller accounts,
+seller profiles, category trees, products, variants, images, reviews, orders, carts, and
+coupons, and it skips completed seeds so repeated startup does not duplicate listings.
 
 ## Auth
 
