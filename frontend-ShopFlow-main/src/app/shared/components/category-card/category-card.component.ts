@@ -12,10 +12,13 @@ const CATEGORY_ICONS: Record<string, string> = {
   Sports: 'star',
   Beauty: 'sparkles',
   'Kids & Toys': 'grid',
+  'Grocery & Gourmet': 'gift',
+  'Pet Supplies': 'heart',
   Books: 'receipt',
   'Books & Stationery': 'receipt',
   Automotive: 'truck',
   'Automotive & Tools': 'truck',
+  Other: 'grid',
   'More Categories': 'grid'
 };
 
@@ -27,10 +30,13 @@ const CATEGORY_IMAGES: Record<string, string> = {
   Sports: 'https://images.unsplash.com/photo-1519861531473-9200262188bf?auto=format&fit=crop&w=900&q=80',
   Beauty: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=80',
   'Kids & Toys': 'https://images.unsplash.com/photo-1618842676088-c4d48a6a7c9d?auto=format&fit=crop&w=900&q=80',
+  'Grocery & Gourmet': 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=900&q=80',
+  'Pet Supplies': 'https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?auto=format&fit=crop&w=900&q=80',
   Books: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80',
   'Books & Stationery': 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80',
   Automotive: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=80',
-  'Automotive & Tools': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=80'
+  'Automotive & Tools': 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=80',
+  Other: 'https://images.unsplash.com/photo-1522199755839-a2bacb67c546?auto=format&fit=crop&w=900&q=80'
 };
 
 @Component({

@@ -137,7 +137,7 @@ export class AboutPageComponent {
   readonly stats = computed(() => {
     const metrics = this.metrics();
     return [
-      { icon: 'bag', value: this.formatMetric(metrics.totalProducts), label: 'Live Products' },
+      { icon: 'bag', value: this.formatMetric(metrics.totalProducts), label: 'Active Products' },
       { icon: 'grid', value: this.formatMetric(metrics.totalCategories), label: 'Categories' },
       { icon: 'badge-percent', value: this.formatMetric(metrics.promotedProducts), label: 'Promotions' },
       { icon: 'star', value: this.formatMetric(metrics.topSellingProducts), label: 'Top Selling Picks' }

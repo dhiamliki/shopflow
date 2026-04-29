@@ -22,7 +22,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
     RouterLink,
     EmptyStateComponent,
     IconComponent,
-    ProductCardComponent
+    ProductCardComponent,
   ],
   template: `
     @if (product(); as p) {
@@ -40,58 +40,84 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
           }
         </nav>
 
-        <div class="grid gap-8 xl:grid-cols-[0.9fr,0.72fr,0.62fr]">
-          <section class="space-y-4">
-            <div class="panel-dark overflow-hidden p-4">
-              <div class="relative overflow-hidden rounded-[28px] border border-white/6 bg-white/[0.03]">
-                <img
-                  class="aspect-[1/0.9] w-full object-cover"
-                  [src]="selectedImage()"
-                  [alt]="p.name"
-                />
-                <button
-                  type="button"
-                  class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/45"
-                >
-                  <app-icon name="arrow-up-right" [size]="18" className="text-white" />
-                </button>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <button type="button" class="icon-button" (click)="stepImage(-1)">
-                <app-icon name="chevron-left" [size]="18" className="text-zinc-200" />
-              </button>
-              <div class="grid flex-1 grid-cols-5 gap-3">
+        <div
+          class="grid gap-7 xl:grid-cols-[minmax(0,720px),minmax(340px,1fr),300px] xl:items-start 2xl:grid-cols-[minmax(0,760px),minmax(380px,1fr),340px]"
+        >
+          <section class="min-w-0">
+            <div class="grid gap-4 md:grid-cols-[88px,minmax(0,1fr)] md:items-start">
+              <div
+                class="product-detail__thumbs order-2 flex gap-3 overflow-x-auto pb-1 md:order-1 md:max-h-[700px] md:flex-col md:overflow-y-auto md:pb-0 md:pr-1"
+              >
                 @for (image of galleryImages(); track image; let imageIndex = $index) {
                   <button
                     type="button"
-                    class="overflow-hidden rounded-[18px] border bg-white/[0.03] transition"
+                    class="h-20 w-20 shrink-0 overflow-hidden rounded-md border bg-zinc-950/80 transition md:h-[88px] md:w-[88px]"
                     [ngClass]="
                       selectedImageIndex() === imageIndex
-                        ? 'border-white/28'
+                        ? 'border-white/30 ring-1 ring-white/15'
                         : 'border-white/8 hover:border-white/14'
                     "
                     (click)="selectedImageIndex.set(imageIndex)"
                   >
-                    <img class="aspect-square w-full object-cover" [src]="image" [alt]="p.name" />
+                    <img
+                      class="sf-product-thumb-image h-full w-full"
+                      [src]="image"
+                      [alt]="p.name"
+                      loading="lazy"
+                    />
                   </button>
                 }
               </div>
-              <button type="button" class="icon-button" (click)="stepImage(1)">
-                <app-icon name="chevron-right" [size]="18" className="text-zinc-200" />
-              </button>
+
+              <div class="panel-dark order-1 overflow-hidden p-2 sm:p-3 md:order-2">
+                <div
+                  class="sf-product-gallery-stage relative h-[440px] overflow-hidden rounded-md border border-white/8 sm:h-[520px] lg:h-[620px] xl:h-[700px]"
+                >
+                  @if (selectedImage()) {
+                    <img
+                      class="sf-product-detail-image h-full w-full"
+                      [src]="selectedImage()"
+                      [alt]="p.name"
+                    />
+                  } @else {
+                    <div class="flex h-full items-center justify-center">
+                      <app-icon name="bag" [size]="36" className="text-zinc-500" />
+                    </div>
+                  }
+
+                  @if (galleryImages().length > 1) {
+                    <button
+                      type="button"
+                      class="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 transition hover:bg-black/70"
+                      (click)="stepImage(-1)"
+                    >
+                      <app-icon name="chevron-left" [size]="18" className="text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      class="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 transition hover:bg-black/70"
+                      (click)="stepImage(1)"
+                    >
+                      <app-icon name="chevron-right" [size]="18" className="text-white" />
+                    </button>
+                  }
+                </div>
+              </div>
             </div>
           </section>
 
-          <section class="space-y-6">
+          <section class="space-y-6 xl:pl-2">
             <div class="space-y-4">
-              <span class="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-zinc-300">
+              <span
+                class="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-zinc-300"
+              >
                 {{ p.categories[0] || 'Featured' }}
               </span>
 
               <div class="space-y-4">
-                <h1 class="font-display text-5xl font-semibold tracking-tight text-white">
+                <h1
+                  class="font-display text-4xl font-semibold tracking-tight text-white xl:text-5xl"
+                >
                   {{ p.name }}
                 </h1>
 
@@ -110,7 +136,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                 </div>
 
                 <div class="flex flex-wrap items-center gap-4">
-                  <p class="text-5xl font-semibold tracking-tight text-white">
+                  <p class="text-4xl font-semibold tracking-tight text-white xl:text-5xl">
                     {{ p.effectivePrice | currency: 'USD' : 'symbol' : '1.0-0' }}
                   </p>
                   @if (p.promoPrice) {
@@ -136,35 +162,42 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
               </div>
             </div>
 
-            <button type="button" class="inline-flex items-center gap-2 text-base font-semibold text-white hover:text-zinc-300">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 text-base font-semibold text-white hover:text-zinc-300"
+            >
               View full specifications
               <app-icon name="arrow-right" [size]="18" className="text-white" />
             </button>
           </section>
 
-          <aside class="space-y-4">
-            <div class="panel-dark p-6">
-              <div class="flex items-center justify-between">
+          <aside class="space-y-4 xl:sticky xl:top-28">
+            <div class="panel-dark p-5">
+              <div class="flex items-start justify-between gap-4">
                 <div>
                   <p class="text-sm text-zinc-500">Sold by</p>
-                  <div class="mt-4 flex items-center gap-4">
-                    <span class="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
-                      <app-icon name="store" [size]="22" className="text-white" />
+                  <div class="mt-3 flex items-center gap-3">
+                    <span
+                      class="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]"
+                    >
+                      <app-icon name="store" [size]="19" className="text-white" />
                     </span>
                     <div>
-                      <p class="text-2xl font-semibold text-white">{{ p.sellerName }}</p>
+                      <p class="text-lg font-semibold text-white">{{ p.sellerName }}</p>
                       <p class="text-sm text-zinc-400">Marketplace seller</p>
                     </div>
                   </div>
                 </div>
-                <button type="button" class="button-secondary px-6">View Store</button>
+                <button type="button" class="button-secondary min-h-10 px-4 text-sm">
+                  View Store
+                </button>
               </div>
 
-              <div class="mt-6 border-t border-white/8 pt-6">
-                <div class="space-y-5 text-base">
+              <div class="mt-5 border-t border-white/8 pt-5">
+                <div class="space-y-4 text-sm">
                   <div class="flex items-center justify-between">
                     <span class="text-zinc-400">Price</span>
-                    <span class="text-4xl font-semibold tracking-tight text-white">
+                    <span class="text-3xl font-semibold tracking-tight text-white">
                       {{ p.effectivePrice | currency: 'USD' : 'symbol' : '1.0-0' }}
                     </span>
                   </div>
@@ -174,20 +207,30 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   </div>
                   <div class="flex items-center justify-between gap-4">
                     <span class="text-zinc-400">Delivery</span>
-                    <span class="text-right text-zinc-200">Est. delivery {{ estimatedDelivery() }}</span>
+                    <span class="text-right text-zinc-200"
+                      >Est. delivery {{ estimatedDelivery() }}</span
+                    >
                   </div>
                 </div>
 
-                <div class="mt-6 space-y-3">
+                <div class="mt-5 space-y-3">
                   <button type="button" class="button-primary w-full" (click)="addToCart()">
                     <app-icon name="bag" [size]="18" className="text-black" />
                     Add to Cart
                   </button>
-                  <button type="button" class="button-secondary w-full" (click)="buyNow()">Buy Now</button>
+                  <button type="button" class="button-secondary w-full" (click)="buyNow()">
+                    Buy Now
+                  </button>
                 </div>
 
-                <div class="mt-6 flex items-center justify-between border-y border-white/8 py-5 text-sm">
-                  <button type="button" class="inline-flex items-center gap-2 text-zinc-300 hover:text-white" (click)="toggleWishlist()">
+                <div
+                  class="mt-5 flex items-center justify-between border-y border-white/8 py-4 text-sm"
+                >
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 text-zinc-300 hover:text-white"
+                    (click)="toggleWishlist()"
+                  >
                     <app-icon
                       name="heart"
                       [size]="17"
@@ -195,21 +238,26 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                     />
                     Add to Wishlist
                   </button>
-                  <button type="button" class="inline-flex items-center gap-2 text-zinc-300 hover:text-white">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 text-zinc-300 hover:text-white"
+                  >
                     <app-icon name="share" [size]="17" className="text-zinc-300" />
                     Share
                   </button>
                 </div>
 
-                <div class="mt-6 space-y-4">
-                  <h3 class="text-xl font-semibold text-white">Shop with confidence</h3>
+                <div class="mt-5 space-y-4">
+                  <h3 class="text-lg font-semibold text-white">Shop with confidence</h3>
                   @for (trust of trustPoints; track trust.title) {
                     <div class="flex items-start gap-3">
-                      <span class="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
-                        <app-icon [name]="trust.icon" [size]="18" className="text-zinc-200" />
+                      <span
+                        class="mt-1 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]"
+                      >
+                        <app-icon [name]="trust.icon" [size]="16" className="text-zinc-200" />
                       </span>
                       <div>
-                        <p class="text-base font-semibold text-white">{{ trust.title }}</p>
+                        <p class="text-sm font-semibold text-white">{{ trust.title }}</p>
                         <p class="text-sm leading-6 text-zinc-400">{{ trust.body }}</p>
                       </div>
                     </div>
@@ -266,11 +314,19 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                       <div class="flex flex-wrap items-center justify-between gap-3">
                         <div>
                           <p class="text-lg font-semibold text-white">{{ review.userName }}</p>
-                          <p class="text-sm text-zinc-500">{{ review.createdAt | date: 'mediumDate' }}</p>
+                          <p class="text-sm text-zinc-500">
+                            {{ review.createdAt | date: 'mediumDate' }}
+                          </p>
                         </div>
                         <span class="inline-flex items-center gap-1 text-amber-300">
                           @for (star of [1, 2, 3, 4, 5]; track star) {
-                            <app-icon name="star" [size]="14" [className]="star <= review.rating ? 'text-amber-300' : 'text-zinc-600'" />
+                            <app-icon
+                              name="star"
+                              [size]="14"
+                              [className]="
+                                star <= review.rating ? 'text-amber-300' : 'text-zinc-600'
+                              "
+                            />
                           }
                         </span>
                       </div>
@@ -308,7 +364,12 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 
             <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               @for (item of relatedProducts(); track item.id) {
-                <app-product-card [product]="item" context="compact" [showSeller]="false" [showActions]="false" />
+                <app-product-card
+                  [product]="item"
+                  context="compact"
+                  [showSeller]="false"
+                  [showActions]="false"
+                />
               }
             </div>
           </aside>
@@ -323,7 +384,29 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
         <a routerLink="/browse" class="button-primary px-8">Browse products</a>
       </app-empty-state>
     }
-  `
+  `,
+  styles: [
+    `
+      .product-detail__thumbs {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+      }
+
+      .product-detail__thumbs::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      .product-detail__thumbs::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+      }
+
+      .product-detail__thumbs::-webkit-scrollbar-track {
+        background: transparent;
+      }
+    `,
+  ],
 })
 export class ProductDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
@@ -334,18 +417,20 @@ export class ProductDetailPageComponent {
   private readonly workspace = inject(WorkspaceService);
 
   readonly selectedImageIndex = signal(0);
-  readonly activeTab = signal<'description' | 'specifications' | 'reviews' | 'shipping'>('description');
+  readonly activeTab = signal<'description' | 'specifications' | 'reviews' | 'shipping'>(
+    'description',
+  );
 
   readonly productId = toSignal(
     this.route.paramMap.pipe(map((params) => Number(params.get('id') ?? 0))),
-    { initialValue: 0 }
+    { initialValue: 0 },
   );
 
   readonly product = toSignal(
-    toObservable(this.productId).pipe(switchMap((productId) =>
-      productId ? this.catalog.getProduct(productId) : of(null)
-    )),
-    { initialValue: null }
+    toObservable(this.productId).pipe(
+      switchMap((productId) => (productId ? this.catalog.getProduct(productId) : of(null))),
+    ),
+    { initialValue: null },
   );
 
   readonly relatedProducts = toSignal(
@@ -355,18 +440,23 @@ export class ProductDetailPageComponent {
           ? this.catalog
               .getTopSelling()
               .pipe(map((items) => items.filter((item) => item.id !== product.id).slice(0, 3)))
-          : of([])
-      )
+          : of([]),
+      ),
     ),
-    { initialValue: [] }
+    { initialValue: [] },
   );
 
   readonly selectedImage = computed(() => {
     const images = this.galleryImages();
     return images[this.selectedImageIndex()] ?? images[0] ?? '';
   });
-  readonly galleryImages = computed(() => this.product()?.imageUrls?.length ? this.product()!.imageUrls : []);
-  readonly wishlisted = computed(() => this.product() && this.workspace.isInWishlist(this.product()!.id));
+  readonly galleryImages = computed(() =>
+    this.product()?.imageUrls?.length ? this.product()!.imageUrls : [],
+  );
+  readonly wishlisted = computed(() => {
+    const product = this.product();
+    return product ? this.workspace.isInWishlist(product.id) : false;
+  });
   readonly reviewCount = computed(() => {
     const p = this.product();
     return p ? p.reviews.length : 0;
@@ -394,7 +484,7 @@ export class ProductDetailPageComponent {
     return [
       { label: 'Home', route: '/' },
       { label: p.categories[0] ?? 'Category', route: '/categories' },
-      { label: p.name }
+      { label: p.name },
     ];
   });
   readonly reviewsToShow = computed(() => this.product()?.reviews ?? []);
@@ -405,13 +495,13 @@ export class ProductDetailPageComponent {
     {
       icon: 'shield-check',
       title: 'Secure Payments',
-      body: 'Your payment information is safe and encrypted.'
+      body: 'Your payment information is safe and encrypted.',
     },
     {
       icon: 'arrow-left',
       title: '30-Day Returns',
-      body: 'Easy returns on eligible items if it is not the right fit.'
-    }
+      body: 'Easy returns on eligible items if it is not the right fit.',
+    },
   ];
   readonly specificationRows = computed(() => {
     const p = this.product();
@@ -422,8 +512,11 @@ export class ProductDetailPageComponent {
       { label: 'Available stock', value: `${p.stock} units` },
       {
         label: 'Variants',
-        value: p.variants.map((variant) => `${variant.attributeName}: ${variant.attributeValue}`).join(' | ') || 'Standard'
-      }
+        value:
+          p.variants
+            .map((variant) => `${variant.attributeName}: ${variant.attributeValue}`)
+            .join(' | ') || 'Standard',
+      },
     ];
   });
 
@@ -445,8 +538,8 @@ export class ProductDetailPageComponent {
       void this.router.navigate(['/auth'], {
         queryParams: {
           mode: 'login',
-          redirect: this.router.url
-        }
+          redirect: this.router.url,
+        },
       });
       return;
     }
@@ -458,7 +551,7 @@ export class ProductDetailPageComponent {
       .addItem({
         productId: p.id,
         variantId: p.variants[0]?.id ?? null,
-        quantity: 1
+        quantity: 1,
       })
       .subscribe();
   }
@@ -471,6 +564,15 @@ export class ProductDetailPageComponent {
   }
 
   toggleWishlist(): void {
+    if (!this.session.isCustomer()) {
+      void this.router.navigate(['/login'], {
+        queryParams: {
+          redirect: this.router.url,
+        },
+      });
+      return;
+    }
+
     const p = this.product();
     if (p) {
       this.workspace.toggleWishlist(p);

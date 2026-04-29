@@ -9,6 +9,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.imageio.ImageIO;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -21,6 +26,7 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
 
     private static final String SELLER_PASSWORD = "Seller123!";
     private static final String CUSTOMER_PASSWORD = "Customer123!";
+    private static final String SEED_IMAGE_URL_PREFIX = "seed-images/v4/";
 
     private final UserRepository userRepository;
     private final SellerProfileRepository sellerProfileRepository;
@@ -32,12 +38,14 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
     private final CartRepository cartRepository;
     private final CouponRepository couponRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Map<String, BufferedImage> seedImageCache = new HashMap<>();
 
     @Override
     @Transactional
     public void run(String... args) {
         List<SellerSeed> sellerSeeds = sellerSeeds();
         List<CustomerSeed> customerSeeds = customerSeeds();
+        Map<String, Category> categoriesByName = createCategoryTree();
         if (isSeedComplete(sellerSeeds)) {
             return;
         }
@@ -45,7 +53,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
         Map<String, User> sellersByEmail = createSellers(sellerSeeds);
         List<User> customers = createCustomers(customerSeeds);
         Map<String, Coupon> couponsByCode = createCoupons();
-        Map<String, Category> categoriesByName = createCategoryTree();
         List<Product> products = createProducts(sellerSeeds, sellersByEmail, categoriesByName);
         createReviews(products, customers);
         Map<User, List<Address>> customerAddresses = createCustomerAddresses(customers);
@@ -64,9 +71,15 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
         return sellerSeeds.stream().allMatch(sellerSeed ->
                 sellerSeed.products().stream().allMatch(productSeed ->
                         productRepository.findBySeller_EmailAndNameIgnoreCase(sellerSeed.email(), productSeed.name())
-                                .filter(product -> product.getImages().stream()
-                                        .anyMatch(image -> image.getImageData() != null && image.getImageData().length > 0))
+                                .filter(product -> product.getImages().stream().anyMatch(this::hasCurrentSeedImage))
                                 .isPresent()));
+    }
+
+    private boolean hasCurrentSeedImage(ProductImage image) {
+        return image.getImageData() != null
+                && image.getImageData().length > 0
+                && image.getImageUrl() != null
+                && image.getImageUrl().startsWith(SEED_IMAGE_URL_PREFIX);
     }
 
     private Map<String, User> createSellers(List<SellerSeed> sellerSeeds) {
@@ -209,7 +222,7 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 product.getCategories().add(categoriesByName.get(branchName));
                 product.getCategories().add(categoriesByName.get(leafName));
 
-                attachImages(product, sellerSeed.imageBank(), productIndex);
+                attachImages(product, seed, sellerSeed, productIndex);
                 if (product.getVariants().isEmpty()) {
                     addVariants(product, seed.variantProfile(), seed.stock());
                 }
@@ -466,172 +479,274 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
         return products.get(startIndex % products.size());
     }
 
-    private void attachImages(Product product, List<String> imageBank, int startIndex) {
+    private void attachImages(Product product, ProductSeed seed, SellerSeed sellerSeed, int startIndex) {
         product.getImages().clear();
-        
-        // Get product-specific images based on product name
-        List<String> productImages = getProductSpecificImages(product.getName());
-        
-        for (int i = 0; i < 3; i++) {
-            String fileName = productImages.get(i % productImages.size());
+
+        List<String> productImages = getProductSpecificImages(
+                product.getName(),
+                sellerSeed.department(),
+                seed.leaf(),
+                sellerSeed.imageBank(),
+                startIndex
+        );
+
+        String baseImage = productImages.get(0);
+        List<CropPreset> cropPresets = galleryCropPresets(seed.leaf(), seed.name());
+
+        for (int i = 0; i < cropPresets.size(); i++) {
+            CropPreset preset = cropPresets.get(i);
+            String variantFileName = variantFileName(baseImage, preset.suffix());
             product.getImages().add(ProductImage.builder()
                     .product(product)
-                    .imageUrl("seed-images/" + fileName)
-                    .imageData(readSeedImage(fileName))
-                    .contentType(contentTypeFor(fileName))
-                    .fileName(fileName)
+                    .imageUrl(SEED_IMAGE_URL_PREFIX + variantFileName)
+                    .imageData(renderSeedImageVariant(baseImage, preset))
+                    .contentType(contentTypeFor(baseImage))
+                    .fileName(variantFileName)
                     .primaryImage(i == 0)
                     .build());
         }
     }
     
-    private List<String> getProductSpecificImages(String productName) {
+    private List<String> getProductSpecificImages(String productName,
+                                                  String department,
+                                                  String leaf,
+                                                  List<String> imageBank,
+                                                  int startIndex) {
         String lowerName = productName.toLowerCase();
-        
-        // Fashion - Dresses
-        if (lowerName.contains("dress") || lowerName.contains("midi") || lowerName.contains("silk") || lowerName.contains("evening")) {
-            return List.of("fashion-01.jpg", "fashion-02.jpg", "fashion-03.jpg");
-        }
-        // Fashion - Coats & Blazers
-        if (lowerName.contains("coat") || lowerName.contains("trench") || lowerName.contains("blazer") || lowerName.contains("wrap")) {
-            return List.of("fashion-04.jpg", "fashion-05.jpg", "fashion-01.jpg");
-        }
-        // Fashion - Bags
-        if (lowerName.contains("bag") || lowerName.contains("tote") || lowerName.contains("crossbody") || lowerName.contains("shoulder")) {
-            return List.of("fashion-02.jpg", "fashion-03.jpg", "fashion-04.jpg");
-        }
-        // Fashion - Jewelry
-        if (lowerName.contains("jewelry") || lowerName.contains("ring") || lowerName.contains("bracelet") || lowerName.contains("pearl") || lowerName.contains("necklace")) {
-            return List.of("fashion-05.jpg", "fashion-01.jpg", "fashion-02.jpg");
-        }
-        
-        // Electronics - Headphones
-        if (lowerName.contains("headphone") || lowerName.contains("headset") || lowerName.contains("earphone")) {
-            return List.of("electronics-01.jpg", "electronics-02.jpg", "electronics-03.jpg");
-        }
-        // Electronics - Speakers
-        if (lowerName.contains("speaker") || lowerName.contains("soundbar") || lowerName.contains("audio")) {
-            return List.of("electronics-03.jpg", "electronics-04.jpg", "electronics-05.jpg");
-        }
-        // Electronics - Display/Monitor
-        if (lowerName.contains("display") || lowerName.contains("monitor") || lowerName.contains("screen")) {
-            return List.of("electronics-04.jpg", "electronics-05.jpg", "electronics-01.jpg");
-        }
-        // Electronics - Peripherals (keyboard, mouse, dock, stand)
-        if (lowerName.contains("keyboard") || lowerName.contains("mouse") || lowerName.contains("dock") || lowerName.contains("stand") || lowerName.contains("laptop")) {
-            return List.of("electronics-02.jpg", "electronics-03.jpg", "electronics-04.jpg");
-        }
-        
-        // Home - Furniture (chair, table, console)
-        if (lowerName.contains("chair") || lowerName.contains("table") || lowerName.contains("console") || lowerName.contains("furniture")) {
-            return List.of("home-01.jpg", "home-02.jpg", "home-03.jpg");
-        }
-        // Home - Lighting (lamp, pendant, light)
-        if (lowerName.contains("lamp") || lowerName.contains("light") || lowerName.contains("pendant")) {
-            return List.of("home-03.jpg", "home-04.jpg", "home-05.jpg");
-        }
-        // Home - Cookware (pot, pan, oven, fry)
-        if (lowerName.contains("pot") || lowerName.contains("pan") || lowerName.contains("oven") || lowerName.contains("cookware") || lowerName.contains("dutch")) {
-            return List.of("home-04.jpg", "home-05.jpg", "home-01.jpg");
-        }
-        // Home - Serveware (carafe, board, set, dinner)
-        if (lowerName.contains("carafe") || lowerName.contains("board") || lowerName.contains("serveware") || lowerName.contains("dinner") || lowerName.contains("stoneware")) {
-            return List.of("home-05.jpg", "home-01.jpg", "home-02.jpg");
-        }
-        
-        // Beauty - Skincare (serum, cream, moisturizer, gel)
-        if (lowerName.contains("serum") || lowerName.contains("cream") || lowerName.contains("moisturizer") || lowerName.contains("gel") || lowerName.contains("mask") || lowerName.contains("skincare")) {
-            return List.of("beauty-01.jpg", "beauty-02.jpg", "beauty-03.jpg");
-        }
-        // Beauty - Haircare (shampoo, treatment, brush, wand, dryer)
-        if (lowerName.contains("shampoo") || lowerName.contains("treatment") || lowerName.contains("brush") || lowerName.contains("wand") || lowerName.contains("dryer") || lowerName.contains("hair")) {
-            return List.of("beauty-03.jpg", "beauty-04.jpg", "beauty-05.jpg");
-        }
-        
-        // Sports - Training (kettlebell, band, roller, dumbbell)
-        if (lowerName.contains("kettlebell") || lowerName.contains("band") || lowerName.contains("roller") || lowerName.contains("dumbbell") || lowerName.contains("training") || lowerName.contains("strength")) {
-            return List.of("sports-01.jpg", "sports-02.jpg", "sports-03.jpg");
-        }
-        // Sports - Outdoor (tent, lantern, pack, helmet, pad, pump)
-        if (lowerName.contains("tent") || lowerName.contains("lantern") || lowerName.contains("pack") || lowerName.contains("helmet") || lowerName.contains("pad") || lowerName.contains("pump") || lowerName.contains("vest") || lowerName.contains("outdoor") || lowerName.contains("camping") || lowerName.contains("cycling") || lowerName.contains("yoga")) {
-            return List.of("sports-03.jpg", "sports-04.jpg", "sports-05.jpg");
-        }
-        
-        // Kids - STEM Toys
-        if (lowerName.contains("stem") || lowerName.contains("magnetic") || lowerName.contains("coding") || lowerName.contains("puzzle") || lowerName.contains("logic")) {
-            return List.of("kids-01.jpg", "kids-02.jpg", "kids-03.jpg");
-        }
-        // Kids - Arts & Crafts
-        if (lowerName.contains("art") || lowerName.contains("craft") || lowerName.contains("paint") || lowerName.contains("sticker")) {
-            return List.of("kids-03.jpg", "kids-04.jpg", "kids-05.jpg");
-        }
-        // Kids - Baby & Nursery (feeding, nursery, lamp, swaddle, chart)
-        if (lowerName.contains("feeding") || lowerName.contains("nursery") || lowerName.contains("lamp") || lowerName.contains("swaddle") || lowerName.contains("chart") || lowerName.contains("plate") || lowerName.contains("box") || lowerName.contains("plush") || lowerName.contains("bento")) {
-            return List.of("kids-04.jpg", "kids-05.jpg", "kids-01.jpg");
-        }
-        
-        // Books - Fiction
-        if (lowerName.contains("novel") || lowerName.contains("fiction") || lowerName.contains("harbor") || lowerName.contains("quiet") || lowerName.contains("living")) {
-            return List.of("books-01.jpg", "books-02.jpg", "books-03.jpg");
-        }
-        // Books - Non-Fiction
-        if (lowerName.contains("guide") || lowerName.contains("field guide") || lowerName.contains("strategy") || lowerName.contains("atlas") || lowerName.contains("non-fiction")) {
-            return List.of("books-03.jpg", "books-04.jpg", "books-05.jpg");
-        }
-        // Books - Stationery (planner, journal, organizer, pen, pad, riser)
-        if (lowerName.contains("planner") || lowerName.contains("journal") || lowerName.contains("organizer") || lowerName.contains("pen") || lowerName.contains("pad") || lowerName.contains("riser") || lowerName.contains("desk")) {
-            return List.of("books-05.jpg", "books-01.jpg", "books-02.jpg");
-        }
-        
-        // Pets - Dog Care (bed, crate, toy, lead, pouch)
-        if (lowerName.contains("dog") || lowerName.contains("bed") || lowerName.contains("crate") || lowerName.contains("toy") || lowerName.contains("lead") || lowerName.contains("pouch") || lowerName.contains("lick")) {
-            return List.of("pets-01.jpg", "pets-02.jpg", "pets-03.jpg");
-        }
-        // Pets - Cat Care (cat, bowl, scratcher, hammock, feeder)
-        if (lowerName.contains("cat") || lowerName.contains("bowl") || lowerName.contains("scratcher") || lowerName.contains("hammock") || lowerName.contains("feeder") || lowerName.contains("whisker")) {
-            return List.of("pets-03.jpg", "pets-04.jpg", "pets-05.jpg");
-        }
-        
-        // Grocery - Coffee & Tea
-        if (lowerName.contains("coffee") || lowerName.contains("espresso") || lowerName.contains("chai") || lowerName.contains("tea") || lowerName.contains("roast")) {
-            return List.of("grocery-01.jpg", "grocery-02.jpg", "grocery-03.jpg");
-        }
-        // Grocery - Olive Oil & Vinegar
-        if (lowerName.contains("olive") || lowerName.contains("oil") || lowerName.contains("vinegar") || lowerName.contains("balsamic")) {
-            return List.of("grocery-03.jpg", "grocery-04.jpg", "grocery-05.jpg");
-        }
-        // Grocery - Chocolate & Gift
-        if (lowerName.contains("chocolate") || lowerName.contains("truffle") || lowerName.contains("gift") || lowerName.contains("box") || lowerName.contains("crate")) {
-            return List.of("grocery-05.jpg", "grocery-01.jpg", "grocery-02.jpg");
-        }
-        
-        // Automotive - Power Tools
-        if (lowerName.contains("drill") || lowerName.contains("driver") || lowerName.contains("impact") || lowerName.contains("light") || lowerName.contains("power")) {
-            return List.of("tools-01.jpg", "tools-02.jpg", "tools-03.jpg");
-        }
-        // Automotive - Hand Tools
-        if (lowerName.contains("socket") || lowerName.contains("ratchet") || lowerName.contains("key") || lowerName.contains("hex") || lowerName.contains("hand")) {
-            return List.of("tools-03.jpg", "tools-04.jpg", "tools-05.jpg");
-        }
-        // Automotive - Car Care
-        if (lowerName.contains("battery") || lowerName.contains("tire") || lowerName.contains("trunk") || lowerName.contains("wash") || lowerName.contains("wax") || lowerName.contains("towel") || lowerName.contains("leather") || lowerName.contains("kit") || lowerName.contains("organizer") || lowerName.contains("safety")) {
-            return List.of("tools-04.jpg", "tools-05.jpg", "tools-01.jpg");
-        }
-        
-        // Default fallback - use generic category images
-        return List.of("home-01.jpg", "home-02.jpg", "home-03.jpg");
+
+        return switch (department) {
+            case "Fashion" -> switch (leaf) {
+                case "Dresses" -> List.of("fashion-01.jpg", "fashion-05.jpg", "fashion-02.jpg");
+                case "Outerwear" -> List.of("fashion-02.jpg", "fashion-05.jpg", "fashion-01.jpg");
+                case "Bags" -> List.of("fashion-03.jpg", "fashion-02.jpg", "fashion-05.jpg");
+                case "Jewelry" -> List.of("fashion-04.jpg", "fashion-03.jpg", "fashion-05.jpg");
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            case "Electronics" -> switch (leaf) {
+                case "Headphones" -> List.of("electronics-01.jpg", "electronics-05.jpg", "electronics-04.jpg");
+                case "Speakers" -> lowerName.contains("microphone")
+                        ? List.of("electronics-05.jpg", "electronics-04.jpg", "electronics-03.jpg")
+                        : List.of("electronics-02.jpg", "electronics-05.jpg", "electronics-04.jpg");
+                case "Displays" -> List.of("electronics-03.jpg", "electronics-05.jpg", "electronics-04.jpg");
+                case "Peripherals" -> lowerName.contains("dock") || lowerName.contains("stand")
+                        ? List.of("electronics-05.jpg", "electronics-04.jpg", "electronics-03.jpg")
+                        : List.of("electronics-04.jpg", "electronics-05.jpg", "electronics-03.jpg");
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            case "Home & Living" -> switch (leaf) {
+                case "Accent Furniture" -> lowerName.contains("table") || lowerName.contains("console")
+                        ? List.of("home-05.jpg", "home-01.jpg", "home-03.jpg")
+                        : List.of("home-01.jpg", "home-05.jpg", "home-02.jpg");
+                case "Lighting" -> List.of("home-02.jpg", "home-01.jpg", "home-05.jpg");
+                case "Cookware" -> List.of("home-04.jpg", "home-03.jpg", "home-05.jpg");
+                case "Serveware" -> List.of("home-03.jpg", "home-04.jpg", "home-05.jpg");
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            case "Beauty" -> switch (leaf) {
+                case "Serums" -> List.of("beauty-01.jpg", "beauty-02.jpg", "beauty-05.jpg");
+                case "Moisturizers" -> lowerName.contains("mask") || lowerName.contains("gel")
+                        ? List.of("beauty-05.jpg", "beauty-02.jpg", "beauty-01.jpg")
+                        : List.of("beauty-02.jpg", "beauty-01.jpg", "beauty-05.jpg");
+                case "Shampoo & Treatment" -> List.of("beauty-03.jpg", "beauty-02.jpg", "beauty-05.jpg");
+                case "Styling Tools" -> List.of("beauty-04.jpg", "beauty-03.jpg", "beauty-05.jpg");
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            case "Sports" -> switch (leaf) {
+                case "Strength Gear" -> List.of("sports-01.jpg", "sports-03.jpg", "sports-02.jpg");
+                case "Yoga & Recovery" -> List.of("sports-03.jpg", "sports-01.jpg", "sports-04.jpg");
+                case "Camping" -> lowerName.contains("daypack")
+                        ? List.of("sports-02.jpg", "sports-04.jpg", "sports-05.jpg")
+                        : List.of("sports-04.jpg", "sports-02.jpg", "sports-05.jpg");
+                case "Cycling" -> lowerName.contains("vest")
+                        ? List.of("sports-02.jpg", "sports-05.jpg", "sports-04.jpg")
+                        : List.of("sports-05.jpg", "sports-02.jpg", "sports-04.jpg");
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            case "Kids & Toys" -> switch (leaf) {
+                case "STEM Toys" -> lowerName.contains("coding")
+                        ? List.of("kids-05.jpg", "kids-01.jpg", "kids-02.jpg")
+                        : List.of("kids-01.jpg", "kids-05.jpg", "kids-02.jpg");
+                case "Arts & Crafts" -> List.of("kids-02.jpg", "kids-01.jpg", "kids-04.jpg");
+                case "Feeding" -> List.of("kids-03.jpg", "kids-04.jpg", "kids-02.jpg");
+                case "Room Decor" -> List.of("kids-04.jpg", "kids-03.jpg", "kids-05.jpg");
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            case "Books & Stationery" -> switch (leaf) {
+                case "Fiction" -> List.of("books-01.jpg", "books-02.jpg", "books-03.jpg");
+                case "Non-Fiction" -> List.of("books-02.jpg", "books-01.jpg", "books-03.jpg");
+                case "Journals" -> List.of("books-03.jpg", "books-04.jpg", "books-05.jpg");
+                case "Office Tools" -> lowerName.contains("riser")
+                        ? List.of("books-05.jpg", "books-04.jpg", "books-03.jpg")
+                        : List.of("books-04.jpg", "books-05.jpg", "books-03.jpg");
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            case "Pet Supplies" -> switch (leaf) {
+                case "Beds & Travel" -> lowerName.contains("crate") || lowerName.contains("lead")
+                        ? List.of("pets-02.jpg", "pets-01.jpg", "pets-04.jpg")
+                        : List.of("pets-01.jpg", "pets-02.jpg", "pets-03.jpg");
+                case "Toys" -> List.of("pets-03.jpg", "pets-01.jpg", "pets-02.jpg");
+                case "Feeding" -> List.of("pets-04.jpg", "pets-05.jpg", "pets-01.jpg");
+                case "Scratchers" -> lowerName.contains("wand")
+                        ? List.of("pets-03.jpg", "pets-05.jpg", "pets-04.jpg")
+                        : List.of("pets-05.jpg", "pets-04.jpg", "pets-03.jpg");
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            case "Grocery & Gourmet" -> switch (leaf) {
+                case "Coffee & Tea" -> lowerName.contains("coffee") || lowerName.contains("espresso")
+                        ? List.of("grocery-01.jpg", "grocery-03.jpg", "grocery-05.jpg")
+                        : List.of("grocery-03.jpg", "grocery-01.jpg", "grocery-05.jpg");
+                case "Olive Oil & Vinegar" -> List.of("grocery-02.jpg", "grocery-05.jpg", "grocery-03.jpg");
+                case "Chocolate" -> List.of("grocery-04.jpg", "grocery-05.jpg", "grocery-01.jpg");
+                case "Gift Boxes" -> List.of("grocery-05.jpg", "grocery-04.jpg", "grocery-02.jpg");
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            case "Automotive & Tools" -> switch (leaf) {
+                case "Power Tools" -> lowerName.contains("light")
+                        ? List.of("tools-03.jpg", "tools-01.jpg", "tools-04.jpg")
+                        : List.of("tools-01.jpg", "tools-02.jpg", "tools-03.jpg");
+                case "Hand Tools" -> List.of("tools-02.jpg", "tools-01.jpg", "tools-03.jpg");
+                case "Interior Care" -> List.of("tools-05.jpg", "tools-04.jpg", "tools-03.jpg");
+                case "Emergency Kits" -> {
+                    if (lowerName.contains("tire") || lowerName.contains("inflator")) {
+                        yield List.of("tools-04.jpg", "tools-03.jpg", "tools-05.jpg");
+                    }
+                    if (lowerName.contains("battery")) {
+                        yield List.of("tools-03.jpg", "tools-04.jpg", "tools-05.jpg");
+                    }
+                    if (lowerName.contains("organizer")) {
+                        yield List.of("tools-04.jpg", "tools-03.jpg", "tools-05.jpg");
+                    }
+                    yield List.of("tools-03.jpg", "tools-05.jpg", "tools-04.jpg");
+                }
+                default -> rotatedImages(imageBank, startIndex);
+            };
+            default -> rotatedImages(imageBank, startIndex);
+        };
     }
 
-    private byte[] readSeedImage(String fileName) {
+    private List<String> rotatedImages(List<String> imageBank, int startIndex) {
+        if (imageBank == null || imageBank.isEmpty()) {
+            return List.of("home-01.jpg", "home-02.jpg", "home-03.jpg");
+        }
+
+        return List.of(
+                imageBank.get(startIndex % imageBank.size()),
+                imageBank.get((startIndex + 1) % imageBank.size()),
+                imageBank.get((startIndex + 2) % imageBank.size())
+        );
+    }
+
+    private List<CropPreset> galleryCropPresets(String leaf, String productName) {
+        String lowerName = productName.toLowerCase(Locale.ROOT);
+
+        if (Set.of("Displays", "Accent Furniture", "Lighting", "Cookware", "Serveware").contains(leaf)
+                || lowerName.contains("monitor")
+                || lowerName.contains("speaker")
+                || lowerName.contains("table")
+                || lowerName.contains("console")
+                || lowerName.contains("stand")) {
+            return List.of(
+                    new CropPreset("hero", 1.02, 0.0, 0.0),
+                    new CropPreset("detail", 1.10, 0.0, 0.02),
+                    new CropPreset("close", 1.18, 0.0, 0.04)
+            );
+        }
+
+        if (Set.of("Jewelry", "Bags", "Serums", "Moisturizers", "Office Tools", "Chocolate",
+                "Coffee & Tea", "Olive Oil & Vinegar").contains(leaf)
+                || lowerName.contains("ring")
+                || lowerName.contains("bracelet")
+                || lowerName.contains("serum")
+                || lowerName.contains("drops")
+                || lowerName.contains("journal")
+                || lowerName.contains("notebook")
+                || lowerName.contains("coffee")
+                || lowerName.contains("olive")
+                || lowerName.contains("vinegar")) {
+            return List.of(
+                    new CropPreset("hero", 1.10, 0.0, -0.01),
+                    new CropPreset("detail", 1.22, 0.0, 0.01),
+                    new CropPreset("close", 1.34, 0.0, 0.04)
+            );
+        }
+
+        return List.of(
+                new CropPreset("hero", 1.06, 0.0, -0.01),
+                new CropPreset("detail", 1.16, 0.0, 0.01),
+                new CropPreset("close", 1.26, 0.0, 0.04)
+        );
+    }
+
+    private String variantFileName(String fileName, String suffix) {
+        int extensionIndex = fileName.lastIndexOf('.');
+        if (extensionIndex < 0) {
+            return fileName + "-" + suffix + ".jpg";
+        }
+        return fileName.substring(0, extensionIndex) + "-" + suffix + fileName.substring(extensionIndex);
+    }
+
+    private byte[] renderSeedImageVariant(String fileName, CropPreset preset) {
+        BufferedImage source = readSeedImage(fileName);
+        int sourceSize = Math.min(source.getWidth(), source.getHeight());
+        int cropSize = Math.max(280, Math.min(sourceSize, (int) Math.round(sourceSize / Math.max(1.0, preset.zoom()))));
+        int maxX = Math.max(0, source.getWidth() - cropSize);
+        int maxY = Math.max(0, source.getHeight() - cropSize);
+        double centerX = source.getWidth() * (0.5 + preset.xShift());
+        double centerY = source.getHeight() * (0.5 + preset.yShift());
+        int cropX = clamp((int) Math.round(centerX - cropSize / 2.0), 0, maxX);
+        int cropY = clamp((int) Math.round(centerY - cropSize / 2.0), 0, maxY);
+
+        BufferedImage output = new BufferedImage(900, 900, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = output.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.drawImage(
+                source,
+                0,
+                0,
+                output.getWidth(),
+                output.getHeight(),
+                cropX,
+                cropY,
+                cropX + cropSize,
+                cropY + cropSize,
+                null
+        );
+        graphics.dispose();
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            ImageIO.write(output, "jpg", outputStream);
+            return outputStream.toByteArray();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to render seed image asset: " + fileName, exception);
+        }
+    }
+
+    private BufferedImage readSeedImage(String fileName) {
+        BufferedImage cached = seedImageCache.get(fileName);
+        if (cached != null) {
+            return cached;
+        }
+
         String resourcePath = "/seed-images/" + fileName;
         try (InputStream inputStream = DevMarketplaceSeeder.class.getResourceAsStream(resourcePath)) {
             if (inputStream == null) {
                 throw new IllegalStateException("Missing seed image asset: " + resourcePath);
             }
-            return inputStream.readAllBytes();
+            BufferedImage image = ImageIO.read(inputStream);
+            if (image == null) {
+                throw new IllegalStateException("Unsupported seed image asset: " + resourcePath);
+            }
+            seedImageCache.put(fileName, image);
+            return image;
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to read seed image asset: " + resourcePath, exception);
         }
+    }
+
+    private int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private String contentTypeFor(String fileName) {
@@ -1208,7 +1323,8 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                                 new CategoryLeafSeed("Interior Care", "Detailing, cleaning, and protection kits."),
                                 new CategoryLeafSeed("Emergency Kits", "Roadside support and trunk-ready prep.")
                         ))
-                ))
+                )),
+                new DepartmentSeed("Other", "A general category for listings that do not fit an existing ShopFlow department.", List.of())
         );
     }
 
@@ -1265,6 +1381,9 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                                int stock,
                                long salesCount,
                                VariantProfile variantProfile) {
+    }
+
+    private record CropPreset(String suffix, double zoom, double xShift, double yShift) {
     }
 
     private record DepartmentSeed(String name, String description, List<CategoryBranchSeed> branches) {

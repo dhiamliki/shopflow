@@ -24,7 +24,8 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> products(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false, name = "categoryId") List<Long> categoryIds,
+            @RequestParam(required = false, name = "categoryIds") List<Long> categoryIdsAlias,
             @RequestParam(required = false) Long sellerId,
             @RequestParam(required = false) Boolean promo,
             @RequestParam(required = false) Double minPrice,
@@ -36,7 +37,7 @@ public class ProductController {
     ) {
         ProductFilterRequest request = new ProductFilterRequest(
                 search,
-                categoryId,
+                mergeCategoryIds(categoryIds, categoryIdsAlias),
                 sellerId,
                 promo,
                 minPrice,
@@ -47,6 +48,18 @@ public class ProductController {
                 size
         );
         return ResponseEntity.ok(productService.filterProducts(request));
+    }
+
+    private List<Long> mergeCategoryIds(List<Long> categoryIds, List<Long> categoryIdsAlias) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return categoryIdsAlias;
+        }
+        if (categoryIdsAlias == null || categoryIdsAlias.isEmpty()) {
+            return categoryIds;
+        }
+        return java.util.stream.Stream.concat(categoryIds.stream(), categoryIdsAlias.stream())
+                .distinct()
+                .toList();
     }
 
     @GetMapping("/{id}")

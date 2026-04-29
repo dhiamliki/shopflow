@@ -42,7 +42,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
         </div>
 
         @if (hasSalesData()) {
-          <app-panel-card title="Sales Overview">
+          <app-panel-card title="Performance">
             <div class="grid gap-4 md:grid-cols-4">
               @for (entry of metrics(); track entry.label) {
                 <div class="border-l border-white/8 pl-4 first:border-l-0 first:pl-0">
@@ -53,11 +53,11 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
             </div>
           </app-panel-card>
         } @else {
-          <app-panel-card title="Sales Overview">
+          <app-panel-card title="Performance">
             <app-empty-state
               icon="chart"
-              title="No sales data yet"
-              message="Start receiving orders to see your sales metrics here."
+              title="No performance data yet"
+              message="Start receiving orders to see your store performance here."
             />
           </app-panel-card>
         }
@@ -94,7 +94,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
           }
         </app-panel-card>
 
-        <app-panel-card title="Top Products">
+        <app-panel-card title="Best Sellers">
           @if (topProducts().length) {
             <div class="space-y-4">
               @for (product of topProducts(); track product.productId) {
@@ -110,8 +110,8 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
           } @else {
             <app-empty-state
               icon="package"
-              title="No product sales yet"
-              message="Products with completed order activity will appear here."
+              title="No best sellers yet"
+              message="Top-performing listings will appear here."
             />
           }
         </app-panel-card>
@@ -132,7 +132,7 @@ export class SellerDashboardPageComponent {
   readonly statCards = computed(() => [
     {
       icon: 'circle-dollar',
-      label: 'Total Sales',
+      label: 'Revenue',
       value: (this.sellerDashboard()?.totalRevenue ?? 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
       delta: ''
     },
@@ -144,7 +144,7 @@ export class SellerDashboardPageComponent {
     },
     {
       icon: 'package',
-      label: 'Products',
+      label: 'Listings',
       value: this.sellerDashboard()?.totalProducts ?? 0,
       delta: ''
     },
@@ -162,8 +162,8 @@ export class SellerDashboardPageComponent {
     const dashboard = this.sellerDashboard() ?? EMPTY_SELLER_DASHBOARD;
     const averageOrder = dashboard.totalOrders > 0 ? dashboard.totalRevenue / dashboard.totalOrders : 0;
     return [
-      { label: 'Total Revenue', value: dashboard.totalRevenue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) },
-      { label: 'Orders Received', value: dashboard.totalOrders },
+      { label: 'Revenue', value: dashboard.totalRevenue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) },
+      { label: 'Orders', value: dashboard.totalOrders },
       { label: 'Pending Orders', value: dashboard.pendingOrders },
       { label: 'Average Order', value: averageOrder.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }
     ];

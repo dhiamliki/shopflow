@@ -1,8 +1,10 @@
 package com.shopflow.dto.product;
 
+import java.util.List;
+
 public record ProductFilterRequest(
         String search,
-        Long categoryId,
+        List<Long> categoryIds,
         Long sellerId,
         Boolean promoOnly,
         Double minPrice,

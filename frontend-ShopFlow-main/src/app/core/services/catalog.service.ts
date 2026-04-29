@@ -14,7 +14,6 @@ export class CatalogService {
 
     const entries = Object.entries({
       search: filters.search ?? undefined,
-      categoryId: filters.categoryId ?? undefined,
       sellerId: filters.sellerId ?? undefined,
       promo: filters.promo ?? undefined,
       minPrice: filters.minPrice ?? undefined,
@@ -29,6 +28,15 @@ export class CatalogService {
       if (value !== undefined && value !== null && value !== '') {
         params = params.set(key, String(value));
       }
+    }
+
+    const categoryIds = filters.categoryIds?.filter((categoryId) => categoryId > 0) ?? [];
+    if (categoryIds.length) {
+      for (const categoryId of categoryIds) {
+        params = params.append('categoryId', String(categoryId));
+      }
+    } else if (filters.categoryId) {
+      params = params.set('categoryId', String(filters.categoryId));
     }
 
     return this.http

@@ -86,7 +86,7 @@ public class ProductService {
 
         Specification<Product> spec = ProductSpecification.activeOnly()
                 .and(ProductSpecification.nameContains(filterRequest.search()))
-                .and(ProductSpecification.categoryEquals(filterRequest.categoryId()))
+                .and(ProductSpecification.categoryIn(filterRequest.categoryIds()))
                 .and(ProductSpecification.sellerEquals(filterRequest.sellerId()))
                 .and(ProductSpecification.promoOnly(filterRequest.promoOnly()))
                 .and(ProductSpecification.minPrice(filterRequest.minPrice()))
@@ -154,6 +154,10 @@ public class ProductService {
                 .sorted()
                 .toList();
         List<String> imageUrls = product.getImages().stream()
+                .sorted(Comparator
+                        .comparing(ProductImage::isPrimaryImage)
+                        .reversed()
+                        .thenComparing(image -> image.getId() == null ? Long.MAX_VALUE : image.getId()))
                 .map(this::toImageSource)
                 .filter(Objects::nonNull)
                 .toList();

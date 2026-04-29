@@ -55,6 +55,7 @@ export interface PageResponse<T> {
 export interface ProductFilters {
   search?: string | null;
   categoryId?: number | null;
+  categoryIds?: number[] | null;
   sellerId?: number | null;
   promo?: boolean | null;
   minPrice?: number | null;

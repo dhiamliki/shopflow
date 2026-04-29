@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   color-scheme: dark;
@@ -26,7 +26,7 @@ body {
   background: #000;
   color: var(--text);
   font-family: 'Inter', system-ui, sans-serif;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
 body,
@@ -297,14 +297,13 @@ a:focus-visible {
   pointer-events: none;
   opacity: 0;
   transition: opacity 220ms ease;
-  background:
-    radial-gradient(
-      320px circle at var(--glow-x, 50%) var(--glow-y, 50%),
-      rgba(50, 209, 122, 0.18),
-      rgba(50, 209, 122, 0.08) 20%,
-      rgba(255, 255, 255, 0.05) 38%,
-      transparent 65%
-    );
+  background: radial-gradient(
+    320px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+    rgba(50, 209, 122, 0.18),
+    rgba(50, 209, 122, 0.08) 20%,
+    rgba(255, 255, 255, 0.05) 38%,
+    transparent 65%
+  );
 }
 
 .glow-surface[data-glow-active='true']::before {
@@ -333,8 +332,12 @@ a:focus-visible {
 }
 
 .hero-lines::after {
-  background:
-    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.04) 40%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    transparent 100%
+  );
   opacity: 0.35;
 }
 
@@ -363,8 +366,62 @@ a:focus-visible {
 
 .sf-image-well {
   background:
-    radial-gradient(circle at 50% 26%, rgba(255, 255, 255, 0.12), transparent 46%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+    radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.2), transparent 48%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.018));
+}
+
+.sf-product-media-well,
+.sf-product-gallery-stage {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.16), transparent 36%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.025) 54%,
+      rgba(0, 0, 0, 0.14)
+    ),
+    #121315;
+}
+
+.sf-product-gallery-stage {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.18), transparent 38%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.09),
+      rgba(255, 255, 255, 0.03) 56%,
+      rgba(0, 0, 0, 0.12)
+    ),
+    #101113;
+}
+
+.sf-product-card-image,
+.sf-product-detail-image,
+.sf-product-thumb-image {
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center 46%;
+  opacity: 1;
+  transition: transform 260ms ease;
+  transform-origin: center;
+}
+
+.sf-product-card-image {
+  transform: scale(1.12);
+}
+
+.group:hover .sf-product-card-image {
+  transform: scale(1.16);
+}
+
+.sf-product-detail-image {
+  transform: scale(1.08);
+}
+
+.sf-product-thumb-image {
+  transform: scale(1.08);
 }
 
 .sf-check {

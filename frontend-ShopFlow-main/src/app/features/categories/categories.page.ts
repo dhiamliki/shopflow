@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map, startWith } from 'rxjs';
+import { startWith } from 'rxjs';
 import { CategoriesService } from '../../core/services/categories.service';
 import { NavigationService } from '../../core/services/navigation.service';
 import { CategoryCardComponent } from '../../shared/components/category-card/category-card.component';
@@ -69,7 +69,7 @@ import { SectionHeadingComponent } from '../../shared/components/section-heading
             </div>
             <h3 class="mt-4 text-3xl font-semibold tracking-tight text-white">Don't see your category?</h3>
             <p class="max-w-2xl text-base leading-7 text-zinc-400">
-              Start selling and reach thousands of buyers today. Create your seller account and list products in minutes.
+              Start selling and reach buyers across ShopFlow categories. Create your seller account and list products in minutes.
             </p>
           </div>
           <button type="button" (click)="onStartSelling()" class="button-primary mt-6 px-8 lg:mt-0">
@@ -95,16 +95,15 @@ export class CategoriesPageComponent {
     initialValue: []
   });
 
-  readonly filteredCategories = toSignal(
-    this.searchControl.valueChanges.pipe(
-      startWith(this.searchControl.getRawValue()),
-      map((search) =>
-        this.categories()
-          .filter((category) =>
-            `${category.name} ${category.description}`.toLowerCase().includes(search.toLowerCase())
-          )
-      )
-    ),
-    { initialValue: [] }
+  readonly searchTerm = toSignal(
+    this.searchControl.valueChanges.pipe(startWith(this.searchControl.getRawValue())),
+    { initialValue: this.searchControl.getRawValue() }
   );
+
+  readonly filteredCategories = computed(() => {
+    const search = this.searchTerm().toLowerCase();
+    return this.categories().filter((category) =>
+      `${category.name} ${category.description}`.toLowerCase().includes(search)
+    );
+  });
 }

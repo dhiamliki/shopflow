@@ -55,7 +55,7 @@ class ProductControllerTest {
 
         mockMvc.perform(get("/api/products")
                         .param("search", "phone")
-                        .param("categoryId", "2")
+                        .param("categoryId", "2", "4")
                         .param("minPrice", "10")
                         .param("maxPrice", "100")
                         .param("page", "1")
@@ -67,7 +67,7 @@ class ProductControllerTest {
         ProductFilterRequest request = captor.getValue();
 
         assertThat(request.search()).isEqualTo("phone");
-        assertThat(request.categoryId()).isEqualTo(2L);
+        assertThat(request.categoryIds()).containsExactly(2L, 4L);
         assertThat(request.sellerId()).isNull();
         assertThat(request.promoOnly()).isNull();
         assertThat(request.minPrice()).isEqualTo(10.0);

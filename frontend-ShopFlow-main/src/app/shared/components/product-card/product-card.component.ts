@@ -26,16 +26,20 @@ import { IconComponent } from '../icon.component';
         />
       }
 
-      <div class="sf-image-well relative overflow-hidden rounded-md">
-        <a [routerLink]="['/product', product().id]" class="block">
+      <div
+        class="sf-product-media-well relative overflow-hidden rounded-md border border-white/8"
+        [ngClass]="context() === 'compact' ? 'aspect-[5/6]' : 'aspect-[4/5]'"
+      >
+        <a [routerLink]="['/product', product().id]" class="block h-full w-full">
           @if (primaryImage()) {
             <img
-              class="aspect-[1.08/1] w-full object-cover opacity-90 transition duration-300 group-hover:scale-[1.02]"
+              class="sf-product-card-image h-full w-full"
               [src]="primaryImage()"
               [alt]="product().name"
+              loading="lazy"
             />
           } @else {
-            <div class="flex aspect-[1.08/1] items-center justify-center">
+            <div class="flex h-full items-center justify-center">
               <app-icon name="bag" [size]="28" className="text-zinc-500" />
             </div>
           }
@@ -50,7 +54,11 @@ import { IconComponent } from '../icon.component';
             <app-icon
               name="heart"
               [size]="17"
-              [className]="wishlisted() || context() === 'wishlist' ? 'text-rose-500 fill-rose-500' : 'text-white'"
+              [className]="
+                wishlisted() || context() === 'wishlist'
+                  ? 'text-rose-500 fill-rose-500'
+                  : 'text-white'
+              "
             />
           </button>
         }
@@ -104,7 +112,11 @@ import { IconComponent } from '../icon.component';
 
         @if (showActions()) {
           <div class="mt-5 flex items-center gap-4">
-            <button type="button" class="button-secondary min-h-10 flex-1 px-4 text-sm" (click)="addToCart()">
+            <button
+              type="button"
+              class="button-secondary min-h-10 flex-1 px-4 text-sm"
+              (click)="addToCart()"
+            >
               <app-icon name="shopping-cart" [size]="16" className="text-zinc-200" />
               Add to Cart
             </button>
@@ -124,7 +136,7 @@ import { IconComponent } from '../icon.component';
         }
       </div>
     </article>
-  `
+  `,
 })
 export class ProductCardComponent {
   private readonly router = inject(Router);
@@ -147,8 +159,8 @@ export class ProductCardComponent {
     if (!this.session.isCustomer()) {
       void this.router.navigate(['/login'], {
         queryParams: {
-          redirect: '/cart'
-        }
+          redirect: '/cart',
+        },
       });
       return;
     }
@@ -158,13 +170,22 @@ export class ProductCardComponent {
       .addItem({
         productId: this.product().id,
         variantId: preferredVariant?.id ?? null,
-        quantity: 1
+        quantity: 1,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
 
   toggleWishlist(): void {
+    if (!this.session.isCustomer()) {
+      void this.router.navigate(['/login'], {
+        queryParams: {
+          redirect: this.router.url,
+        },
+      });
+      return;
+    }
+
     this.workspace.toggleWishlist(this.product());
   }
 

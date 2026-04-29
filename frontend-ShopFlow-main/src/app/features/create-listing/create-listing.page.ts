@@ -104,8 +104,8 @@ interface ListingDraftPayload {
               <div class="grid gap-4 md:grid-cols-2">
                 <select class="select-dark" formControlName="categoryId">
                   <option value="">Select category</option>
-                  @for (category of flatCategories(); track category.id) {
-                    <option [value]="category.id">{{ category.name }}</option>
+                  @for (option of categoryOptions(); track option.category.id) {
+                    <option [value]="option.category.id">{{ categoryOptionLabel(option.depth, option.category.name) }}</option>
                   }
                 </select>
                 <input class="input-dark" formControlName="brand" placeholder="Brand" />
@@ -232,6 +232,7 @@ export class CreateListingPageComponent {
 
   readonly categories = toSignal(this.categoriesService.getCategories(), { initialValue: [] });
   readonly flatCategories = computed(() => this.categoriesService.flattenCategories(this.categories()));
+  readonly categoryOptions = computed(() => this.categoriesService.flattenCategoriesWithDepth(this.categories()));
   readonly previewImage = computed(() => this.uploadedImages()[0] ?? '');
   readonly previewPrice = computed(() => Number(this.listingForm.controls.price.value) || 0);
   readonly compareAtPrice = computed(() => Number(this.listingForm.controls.compareAtPrice.value) || 0);
@@ -355,6 +356,10 @@ export class CreateListingPageComponent {
           this.message.set('We could not publish this listing yet. Save it as a draft and try again.');
         }
       });
+  }
+
+  categoryOptionLabel(depth: number, name: string): string {
+    return `${'-- '.repeat(depth)}${name}`;
   }
 
   private restoreDraft(): void {

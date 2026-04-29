@@ -16,10 +16,12 @@ export class WorkspaceService {
   readonly profileEditingAvailable = true;
   readonly notificationPreferencesAvailable = true;
 
-  readonly wishlist = signal<WishlistItem[]>(readStored(STORAGE_KEYS.wishlist, []));
-  readonly notifications = signal<NotificationItem[]>(
+  private readonly storedWishlist = signal<WishlistItem[]>(readStored(STORAGE_KEYS.wishlist, []));
+  private readonly storedNotifications = signal<NotificationItem[]>(
     readStored(STORAGE_KEYS.notifications, [])
   );
+  readonly wishlist = computed(() => (this.session.isAuthenticated() ? this.storedWishlist() : []));
+  readonly notifications = computed(() => (this.session.isAuthenticated() ? this.storedNotifications() : []));
   readonly notificationPreferences = signal<NotificationPreference[]>(
     readStored(STORAGE_KEYS.notificationPreferences, DEFAULT_PREFERENCES)
   );
@@ -45,31 +47,51 @@ export class WorkspaceService {
   constructor(private readonly session: SessionService) {}
 
   isInWishlist(productId: number): boolean {
+    if (!this.session.isAuthenticated()) {
+      return false;
+    }
+
     return this.wishlist().some((item) => item.id === productId);
   }
 
   toggleWishlist(product: Product): void {
+    if (!this.session.isAuthenticated()) {
+      return;
+    }
+
     if (this.isInWishlist(product.id)) {
       this.removeWishlistItem(product.id);
       return;
     }
 
-    this.wishlist.update((items) => [{ ...product, vendorLabel: product.sellerName }, ...items]);
+    this.storedWishlist.update((items) => [{ ...product, vendorLabel: product.sellerName }, ...items]);
     this.persistWishlist();
   }
 
   removeWishlistItem(productId: number): void {
-    this.wishlist.update((items) => items.filter((item) => item.id !== productId));
+    if (!this.session.isAuthenticated()) {
+      return;
+    }
+
+    this.storedWishlist.update((items) => items.filter((item) => item.id !== productId));
     this.persistWishlist();
   }
 
   markAllNotificationsRead(): void {
-    this.notifications.update((items) => items.map((item) => ({ ...item, read: true })));
+    if (!this.session.isAuthenticated()) {
+      return;
+    }
+
+    this.storedNotifications.update((items) => items.map((item) => ({ ...item, read: true })));
     this.persistNotifications();
   }
 
   markNotificationRead(notificationId: number): void {
-    this.notifications.update((items) =>
+    if (!this.session.isAuthenticated()) {
+      return;
+    }
+
+    this.storedNotifications.update((items) =>
       items.map((item) => (item.id === notificationId ? { ...item, read: true } : item))
     );
     this.persistNotifications();
@@ -95,11 +117,11 @@ export class WorkspaceService {
   }
 
   private persistWishlist(): void {
-    localStorage.setItem(STORAGE_KEYS.wishlist, JSON.stringify(this.wishlist()));
+    localStorage.setItem(STORAGE_KEYS.wishlist, JSON.stringify(this.storedWishlist()));
   }
 
   private persistNotifications(): void {
-    localStorage.setItem(STORAGE_KEYS.notifications, JSON.stringify(this.notifications()));
+    localStorage.setItem(STORAGE_KEYS.notifications, JSON.stringify(this.storedNotifications()));
   }
 }
 

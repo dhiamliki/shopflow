@@ -3,6 +3,8 @@ package com.shopflow.specifications;
 import com.shopflow.entities.Product;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collection;
+
 public final class ProductSpecification {
 
     private ProductSpecification() {
@@ -31,6 +33,16 @@ public final class ProductSpecification {
             }
             query.distinct(true);
             return cb.equal(root.join("categories").get("id"), categoryId);
+        };
+    }
+
+    public static Specification<Product> categoryIn(Collection<Long> categoryIds) {
+        return (root, query, cb) -> {
+            if (categoryIds == null || categoryIds.isEmpty()) {
+                return cb.conjunction();
+            }
+            query.distinct(true);
+            return root.join("categories").get("id").in(categoryIds);
         };
     }
 
