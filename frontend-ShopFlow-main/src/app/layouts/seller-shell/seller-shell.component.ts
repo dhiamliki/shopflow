@@ -9,14 +9,7 @@ const SELLER_SECTIONS: NavSection[] = [
     label: '',
     items: [
       { label: 'Dashboard', route: '/seller/dashboard', icon: 'dashboard' },
-      { label: 'Listings', route: '/seller/create-listing', icon: 'receipt' },
-      { label: 'Orders', route: '/seller/dashboard', icon: 'package' },
-      { label: 'Payouts', route: '/seller/dashboard', icon: 'circle-dollar' },
-      { label: 'Analytics', route: '/seller/dashboard', icon: 'analytics' },
-      { label: 'Reviews', route: '/seller/dashboard', icon: 'star' },
-      { label: 'Store', route: '/seller/dashboard', icon: 'store' },
-      { label: 'Marketing', route: '/seller/dashboard', icon: 'megaphone' },
-      { label: 'Settings', route: '/account/settings', icon: 'settings' }
+      { label: 'Create Listing', route: '/seller/create-listing', icon: 'plus' }
     ]
   }
 ];

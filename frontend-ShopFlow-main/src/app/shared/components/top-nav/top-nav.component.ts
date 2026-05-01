@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
 import { SessionService } from '../../../core/services/session.service';
-import { WorkspaceService } from '../../../core/services/workspace.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { IconComponent } from '../icon.component';
 
@@ -37,27 +36,6 @@ export type TopNavMode = 'marketing' | 'shop' | 'auth' | 'seller';
           </nav>
         }
 
-        @if (mode() === 'seller') {
-          <button type="button" class="icon-button ml-4 hidden rounded-full lg:inline-flex">
-            <app-icon name="menu" [size]="20" className="text-zinc-200" />
-          </button>
-          <form
-            class="hidden min-w-[520px] items-center gap-3 rounded-md border border-white/12 bg-white/[0.045] px-4 py-2.5 lg:flex"
-            (ngSubmit)="submitSearch()"
-          >
-            <app-icon name="search" [size]="18" className="text-zinc-400" />
-            <input
-              [(ngModel)]="searchQuery"
-              name="seller-query"
-              type="text"
-              placeholder="Search for products..."
-              class="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-500"
-            />
-            <span class="border-l border-white/10 pl-5 text-sm text-zinc-300">All Categories</span>
-            <app-icon name="chevron-down" [size]="16" className="text-zinc-400" />
-          </form>
-        }
-
         <div class="ml-auto flex min-w-0 items-center gap-3 lg:gap-4">
           @if (mode() === 'shop') {
             <form
@@ -75,17 +53,6 @@ export type TopNavMode = 'marketing' | 'shop' | 'auth' | 'seller';
             </form>
           }
 
-          @if (mode() === 'seller') {
-            <div class="hidden items-center gap-3 lg:flex">
-              <button type="button" class="icon-button">
-                <app-icon name="message" [size]="19" className="text-zinc-300" />
-              </button>
-              <button type="button" class="icon-button">
-                <app-icon name="bell" [size]="19" className="text-zinc-300" />
-              </button>
-            </div>
-          }
-
           @if (showCommerceActions()) {
             <div class="hidden items-center gap-2 border-l border-white/10 pl-4 lg:flex">
               <a routerLink="/cart" class="icon-button has-badge">
@@ -94,19 +61,6 @@ export type TopNavMode = 'marketing' | 'shop' | 'auth' | 'seller';
                   <span class="badge-chip">{{ cartCount() }}</span>
                 }
               </a>
-              @if (workspace.wishlistAvailable) {
-                <a routerLink="/account/wishlist" class="icon-button">
-                  <app-icon name="heart" [size]="19" className="text-zinc-200" />
-                </a>
-              }
-              @if (workspace.notificationsAvailable) {
-                <a routerLink="/account/notifications" class="icon-button has-badge">
-                  <app-icon name="bell" [size]="19" className="text-zinc-200" />
-                  @if (notificationCount() > 0) {
-                    <span class="badge-chip">{{ notificationCount() }}</span>
-                  }
-                </a>
-              }
             </div>
           }
 
@@ -123,10 +77,9 @@ export type TopNavMode = 'marketing' | 'shop' | 'auth' | 'seller';
               <span class="leading-tight">
                 <span class="block">{{ session.displayName() }}</span>
                 @if (mode() === 'seller') {
-                  <span class="text-xs font-medium text-zinc-400">View Store</span>
+                  <span class="text-xs font-medium text-zinc-400">Seller dashboard</span>
                 }
               </span>
-              <app-icon name="chevron-down" [size]="18" className="text-zinc-500" />
             </a>
 
             @if (mode() !== 'seller') {
@@ -155,13 +108,11 @@ export class TopNavComponent {
   readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly cartService = inject(CartService);
-  readonly workspace = inject(WorkspaceService);
   private readonly auth = inject(AuthService);
 
   searchQuery = '';
 
   readonly cartCount = computed(() => this.cartService.count());
-  readonly notificationCount = computed(() => this.workspace.unreadNotificationCount());
   readonly showCommerceActions = computed(() => this.mode() === 'shop');
   readonly navLinks = computed(() => [
     { label: 'Home', route: '/' },

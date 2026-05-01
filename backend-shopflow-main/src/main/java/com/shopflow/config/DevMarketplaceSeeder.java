@@ -9,13 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.imageio.ImageIO;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -26,7 +19,293 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
 
     private static final String SELLER_PASSWORD = "Seller123!";
     private static final String CUSTOMER_PASSWORD = "Customer123!";
-    private static final String SEED_IMAGE_URL_PREFIX = "seed-images/v4/";
+    private static final String SEED_IMAGE_MARKER = "seed-product-photo/v2/";
+
+    private static final Map<String, ProductMediaSeed> PRODUCT_MEDIA = Map.ofEntries(
+            Map.entry("Verona Satin Midi Dress", productMedia("satin,dress,women", 620000)),
+            Map.entry("Alder Trench Coat", productMedia("trench,coat", 620010)),
+            Map.entry("Harper Leather Crossbody", productMedia("crossbody,bag", 620020)),
+            Map.entry("Luna Pearl Drop Set", productMedia("pearl,earrings", 620030)),
+            Map.entry("Marais Wool Wrap Coat", productMedia("wool,coat,women", 620040)),
+            Map.entry("Solene Silk Halter Dress", productMedia("silk,dress,women", 620050)),
+            Map.entry("Portofino Leather Tote", productMedia("leather,tote,bag", 620060)),
+            Map.entry("Atelier Signet Ring Stack", productMedia("signet,ring,jewelry", 620070)),
+            Map.entry("Riviera Pleated Evening Dress", productMedia("dress,women", 620080)),
+            Map.entry("Camden Cropped Blazer", productMedia("blazer,women", 620090)),
+            Map.entry("Milan Chain Shoulder Bag", productMedia("shoulder,bag", 620100)),
+            Map.entry("Starlit Tennis Bracelet", productMedia("bracelet,jewelry", 620110)),
+            Map.entry("Nova ANC Wireless Headphones", productMedia("wireless,headphones", 620120)),
+            Map.entry("Echo Shelf Speaker Pair", productMedia("bookshelf,speaker", 620130)),
+            Map.entry("Atlas 27-Inch 4K Display", productMedia("monitor,screen", 620140)),
+            Map.entry("Relay Mechanical Keyboard", productMedia("mechanical,keyboard", 620150)),
+            Map.entry("Orbit USB-C Dock Station", productMedia("usb,c,hub", 620160)),
+            Map.entry("Pulse Portable Bluetooth Speaker", productMedia("bluetooth,speaker", 620170)),
+            Map.entry("Meridian Studio Headset", productMedia("gaming,headset", 620180)),
+            Map.entry("FrameView 32-Inch Curved Monitor", productMedia("curved,monitor", 620190)),
+            Map.entry("Raster Wireless Mouse", productMedia("wireless,mouse", 620200)),
+            Map.entry("Signal Streaming Microphone", productMedia("streaming,microphone", 620210)),
+            Map.entry("Halo Soundbar Mini", productMedia("soundbar,speaker", 620220)),
+            Map.entry("Vector Aluminum Laptop Stand", productMedia("laptop,stand", 620230)),
+            Map.entry("Rowan Boucle Accent Chair", productMedia("accent,chair", 620240)),
+            Map.entry("Solis Brass Floor Lamp", productMedia("floor,lamp", 620250)),
+            Map.entry("Mira Stoneware Dinner Set", productMedia("dinnerware,set", 620260)),
+            Map.entry("Alder Oak Coffee Table", productMedia("coffee,table", 620270)),
+            Map.entry("Ember Cast Iron Dutch Oven", productMedia("dutch,oven", 620280)),
+            Map.entry("Tidal Glass Carafe Set", productMedia("glass,carafe", 620290)),
+            Map.entry("Lumen Linen Table Lamp", productMedia("table,lamp", 620300)),
+            Map.entry("Haven Walnut Console", productMedia("console,table", 620310)),
+            Map.entry("Cedar Marble Serving Board", productMedia("serving,board", 620320)),
+            Map.entry("Arc Ceramic Pendant Light", productMedia("pendant,light", 620330)),
+            Map.entry("Verona Nonstick Fry Pan", productMedia("frying,pan", 620340)),
+            Map.entry("Woven Basket Side Table", productMedia("basket,table", 620350)),
+            Map.entry("Cloud Dew Hyaluronic Serum", productMedia("serum", 620360)),
+            Map.entry("Barrier Repair Cream", productMedia("cream,jar", 620370)),
+            Map.entry("Root Reset Clarifying Shampoo", productMedia("shampoo,bottle", 620380)),
+            Map.entry("Silk Finish Thermal Brush", productMedia("hair,brush", 620390)),
+            Map.entry("Vitamin C Brightening Drops", productMedia("skincare,bottle", 620400)),
+            Map.entry("Overnight Recovery Mask", productMedia("face,mask,jar", 620410)),
+            Map.entry("Restore Bond Treatment", productMedia("hair,treatment", 620420)),
+            Map.entry("Ceramic Ionic Styling Wand", productMedia("curling,iron", 620430)),
+            Map.entry("Calm Water Gel Moisturizer", productMedia("cosmetics", 620440)),
+            Map.entry("Peptide Firming Serum", productMedia("beauty,serum", 620450)),
+            Map.entry("Scalp Balance Exfoliating Wash", productMedia("shampoo,bottle", 620460)),
+            Map.entry("AirLift Diffuser Dryer", productMedia("hair,dryer", 620470)),
+            Map.entry("Granite Grip Kettlebell 16kg", productMedia("kettlebell", 620480)),
+            Map.entry("Ridge Trail Daypack", productMedia("hiking,daypack", 620490)),
+            Map.entry("Flow Cork Yoga Mat", productMedia("yoga,mat", 620500)),
+            Map.entry("Northline Camping Lantern", productMedia("camping,lantern", 620510)),
+            Map.entry("Apex Resistance Band Kit", productMedia("resistance,bands", 620520)),
+            Map.entry("VeloShield Road Helmet", productMedia("cycling,helmet", 620530)),
+            Map.entry("Summit Recovery Roller", productMedia("foam,roller", 620540)),
+            Map.entry("Alpine Two-Person Tent", productMedia("tent", 620550)),
+            Map.entry("Stride Hydration Vest", productMedia("running,vest", 620560)),
+            Map.entry("Forge Adjustable Dumbbells", productMedia("dumbbells", 620570)),
+            Map.entry("Cascade Sleeping Pad", productMedia("sleeping,pad", 620580)),
+            Map.entry("Terrain Bike Floor Pump", productMedia("bike,pump", 620590)),
+            Map.entry("Orbit Magnetic Builder Set", productMedia("blocks,toy", 620600)),
+            Map.entry("Little Makers Art Caddy", productMedia("art,supplies", 620610)),
+            Map.entry("Cloud Silicone Bento Box", productMedia("bento,box", 620620)),
+            Map.entry("Moonbeam Nursery Lamp", productMedia("nursery,lamp", 620630)),
+            Map.entry("Junior Coding Rover", productMedia("robot,toy", 620640)),
+            Map.entry("Washable Poster Paint Set", productMedia("paint,set", 620650)),
+            Map.entry("Meadow Suction Plate Trio", productMedia("baby,plate", 620660)),
+            Map.entry("Storytime Plush Reading Nook", productMedia("reading,nook", 620670)),
+            Map.entry("Puzzle Path Logic Tiles", productMedia("puzzle,tiles", 620680)),
+            Map.entry("Craft Club Sticker Studio", productMedia("sticker,craft", 620690)),
+            Map.entry("Snuggle Cotton Swaddle Set", productMedia("baby,swaddle", 620700)),
+            Map.entry("Rainbow Growth Chart", productMedia("growth,chart", 620710)),
+            Map.entry("Midnight Harbor: A Novel", productMedia("novel,book", 620720)),
+            Map.entry("Design Systems Field Guide", productMedia("design,book", 620730)),
+            Map.entry("Daily Focus Linen Planner", productMedia("planner,notebook", 620740)),
+            Map.entry("Brass Grid Desk Organizer", productMedia("desk,organizer", 620750)),
+            Map.entry("The Quiet Department", productMedia("fiction,book", 620760)),
+            Map.entry("Creative Strategy Workbook", productMedia("workbook,notebook", 620770)),
+            Map.entry("Softcover Dot Journal Set", productMedia("journal", 620780)),
+            Map.entry("Precision Gel Pen Trio", productMedia("gel,pens", 620790)),
+            Map.entry("Atlas of Small Adventures", productMedia("travel,book", 620800)),
+            Map.entry("Notes on Slow Living", productMedia("lifestyle,book", 620810)),
+            Map.entry("Walnut Monitor Riser", productMedia("monitor,stand", 620820)),
+            Map.entry("Weekly Desk Pad", productMedia("desk,pad", 620830)),
+            Map.entry("Harbor Orthopedic Dog Bed", productMedia("dog,bed", 620840)),
+            Map.entry("Rover Trail Travel Crate", productMedia("dog,crate", 620850)),
+            Map.entry("TugTime Rope Toy Pack", productMedia("rope,dog,toy", 620860)),
+            Map.entry("Whisker Ceramic Feeding Station", productMedia("pet,bowls", 620870)),
+            Map.entry("Cedar Cat Climbing Post", productMedia("cat,scratching,post", 620880)),
+            Map.entry("CalmPaws Lick Mat", productMedia("dog,mat", 620890)),
+            Map.entry("Seaside Waterproof Lead Set", productMedia("dog,leash", 620900)),
+            Map.entry("Feather Dash Teaser Wand", productMedia("cat,toy", 620910)),
+            Map.entry("Elevated Birch Bowl Stand", productMedia("pet,bowls", 620920)),
+            Map.entry("Window Hammock Lounger", productMedia("cat,hammock", 620930)),
+            Map.entry("Training Treat Pouch", productMedia("treat,bag", 620940)),
+            Map.entry("Sisal Corner Scratch Ramp", productMedia("cat,scratcher", 620950)),
+            Map.entry("Atlas Roast Coffee Beans", productMedia("coffee,beans", 620960)),
+            Map.entry("Citrus Grove Extra Virgin Olive Oil", productMedia("olive,oil", 620970)),
+            Map.entry("Monsoon Masala Chai Tin", productMedia("chai,tea", 620980)),
+            Map.entry("Sea Salt Dark Chocolate Squares", productMedia("dark,chocolate", 620990)),
+            Map.entry("Barrel-Aged Balsamic Reserve", productMedia("balsamic,vinegar", 621000)),
+            Map.entry("Breakfast Pantry Gift Box", productMedia("gift,basket", 621010)),
+            Map.entry("Bloom Jasmine Green Tea", productMedia("green,tea", 621020)),
+            Map.entry("Sicilian Lemon Olive Oil", productMedia("lemon,olive,oil", 621030)),
+            Map.entry("Roasted Hazelnut Truffle Box", productMedia("chocolate,truffle", 621040)),
+            Map.entry("Mediterranean Tapas Gift Crate", productMedia("food,gift,basket", 621050)),
+            Map.entry("Espresso Blend Capsules", productMedia("coffee,capsules", 621060)),
+            Map.entry("Smoked Chili Olive Oil", productMedia("chili,oil", 621070)),
+            Map.entry("TorqueMax Cordless Drill", productMedia("cordless,drill", 621080)),
+            Map.entry("Precision Ratchet Socket Set", productMedia("socket,set", 621090)),
+            Map.entry("RoadReady Emergency Battery Pack", productMedia("jump,starter", 621100)),
+            Map.entry("Leather Guard Interior Kit", productMedia("leather,care", 621110)),
+            Map.entry("SteelCore Impact Driver", productMedia("impact,driver", 621120)),
+            Map.entry("FlexGrip Hex Key Bundle", productMedia("hex,key", 621130)),
+            Map.entry("All-Weather Trunk Organizer", productMedia("car,organizer", 621140)),
+            Map.entry("Ceramic Wash & Wax Duo", productMedia("car,wax", 621150)),
+            Map.entry("Workshop Magnetic Light Bar", productMedia("workshop,light", 621160)),
+            Map.entry("Compact Tire Inflator", productMedia("tire,inflator", 621170)),
+            Map.entry("Microfiber Detailing Towel Pack", productMedia("microfiber,towels", 621180)),
+            Map.entry("Trailside Safety Kit", productMedia("emergency,kit", 621190))
+    );
+
+    private static ProductMediaSeed productMedia(String sourceTags, int baseLock) {
+        return new ProductMediaSeed(sourceTags, List.of(
+                productPhotoUrl(sourceTags, baseLock),
+                productPhotoUrl(sourceTags, baseLock + 1)
+        ));
+    }
+
+    private static String productPhotoUrl(String sourceTags, int lock) {
+        // Use Unsplash for real product images - keywords mapped to specific photo IDs
+        // Format: https://images.unsplash.com/photo-[ID]?w=800&h=1000&fit=crop&q=80
+        return "https://images.unsplash.com/" + getUnsplashPhotoId(sourceTags, lock) + "?w=800&h=1000&fit=crop&q=80";
+    }
+
+    private static String getUnsplashPhotoId(String tags, int lock) {
+        // Map of keywords to real Unsplash photo IDs for product-only shots
+        // Priority: Fashion (dresses, coats, bags), then Electronics, then rest
+        Map<String, String[]> photoMap = Map.ofEntries(
+                // Fashion - Dresses
+                Map.entry("satin,dress,women", new String[]{"photo-1595777457583-95e059d581b8", "photo-1572804013309-59a88b7e92f1"}),
+                Map.entry("silk,dress,women", new String[]{"photo-1566174053879-31528523f8ae", "photo-1515372039744-b8f02a3ae446"}),
+                Map.entry("dress,women", new String[]{"photo-1594938298603-c8148c4dae35", "photo-1578587018452-892bacefd3f2"}),
+                // Fashion - Outerwear
+                Map.entry("trench,coat", new String[]{"photo-1591047139829-d91aecb6caea", "photo-1544923246-77307dd628b7"}),
+                Map.entry("wool,coat,women", new String[]{"photo-1539533018447-63fcce2678e3", "photo-1609804899730-d4a5706a3d99"}),
+                // Fashion - Bags
+                Map.entry("crossbody,bag", new String[]{"photo-1548036328-c9fa89d128fa", "photo-1584917865442-de89df76afd3"}),
+                Map.entry("leather,tote,bag", new String[]{"photo-1590874103328-eac38a683ce7", "photo-1591561954557-26941169b49e"}),
+                Map.entry("shoulder,bag", new String[]{"photo-1566150905458-1bf1fc113f0d", "photo-1594223274512-ad4803731b7"}),
+                // Fashion - Jewelry
+                Map.entry("pearl,earrings", new String[]{"photo-1515562141207-7a88fb7ce338", "photo-1602751584552-8ba73aad10e1"}),
+                Map.entry("signet,ring,jewelry", new String[]{"photo-1605100804763-247f67b3557e", "photo-1617038260897-41a1f14a8ca0"}),
+                Map.entry("bracelet,jewelry", new String[]{"photo-1611591437281-460bfbe1220a", "photo-1573408301185-9146fe634ad0"}),
+                // Fashion - Blazers
+                Map.entry("blazer,women", new String[]{"photo-1591047139829-d91aecb6caea", "photo-1594938298603-c8148c4dae35"}),
+                // Electronics - Headphones
+                Map.entry("wireless,headphones", new String[]{"photo-1505740420928-5e560c06d30e", "photo-1484704849700-f032a568e944"}),
+                Map.entry("gaming,headset", new String[]{"photo-1618366712010-f4ae9c647dcb", "photo-1599669454699-248893623440"}),
+                // Electronics - Speakers
+                Map.entry("bookshelf,speaker", new String[]{"photo-1545454675-3531b543be5d", "photo-1608043152269-423dbba4e7e1"}),
+                Map.entry("bluetooth,speaker", new String[]{"photo-1608043152269-423dbba4e7e1", "photo-1558537348-c0f8e59330d3"}),
+                Map.entry("soundbar,speaker", new String[]{"photo-1558537348-c0f8e59330d3", "photo-1545454675-3531b543be5d"}),
+                // Electronics - Displays
+                Map.entry("monitor,screen", new String[]{"photo-1527443224154-c4a3942d3acf", "photo-1586210579191-33b45e38fa2c"}),
+                Map.entry("curved,monitor", new String[]{"photo-1586210579191-33b45e38fa2c", "photo-1527443224154-c4a3942d3acf"}),
+                // Electronics - Peripherals
+                Map.entry("mechanical,keyboard", new String[]{"photo-1587829741301-dc798b83add3", "photo-1511467687858-23d96c32e4ae"}),
+                Map.entry("wireless,mouse", new String[]{"photo-1527864550417-7fd91fc51a46", "photo-1615663245857-ac93bb7c39e7"}),
+                Map.entry("usb,c,hub", new String[]{"photo-1625723044792-44de16ccb4e9", "photo-1612362463965-4a0b4f2d9b8c"}),
+                Map.entry("streaming,microphone", new String[]{"photo-1590602847861-f357a9332bbc", "photo-1598488035139-bdbb223185ce"}),
+                Map.entry("laptop,stand", new String[]{"photo-1527443224154-c4a3942d3acf", "photo-1587829741301-dc798b83add3"}),
+                // Home & Living - Furniture
+                Map.entry("accent,chair", new String[]{"photo-1555041469-a586c61ea9bc", "photo-1506439773649-6e0eb8cfb237"}),
+                Map.entry("floor,lamp", new String[]{"photo-1507473885765-e6ed057f782c", "photo-1513506003901-1e6a229e2d15"}),
+                Map.entry("table,lamp", new String[]{"photo-1513506003901-1e6a229e2d15", "photo-1507473885765-e6ed057f782c"}),
+                Map.entry("pendant,light", new String[]{"photo-1524484485831-a92ffc0de03f", "photo-1513506003901-1e6a229e2d15"}),
+                Map.entry("coffee,table", new String[]{"photo-1532372320572-cda25652a6bf", "photo-1555041469-a586c61ea9bc"}),
+                Map.entry("console,table", new String[]{"photo-1558997519-83ea9252edf8", "photo-1532372320572-cda25652a6bf"}),
+                // Home & Living - Kitchen
+                Map.entry("dinnerware,set", new String[]{"photo-1610701596007-11502861dcfa", "photo-1563729768-6af7c46b6eb2"}),
+                Map.entry("dutch,oven", new String[]{"photo-1585445490382-0aef6279e2f3", "photo-1584568694244-14fbdf83bd30"}),
+                Map.entry("glass,carafe", new String[]{"photo-1577937927133-66ef06acdf18", "photo-1563514227147-6d2ff665a6a0"}),
+                Map.entry("serving,board", new String[]{"photo-1544457070-4cd773b4d71e", "photo-1606760227091-3dd870d97b1d"}),
+                Map.entry("frying,pan", new String[]{"photo-1556909114-f6e7ad7d3136", "photo-1585445490382-0aef6279e2f3"}),
+                Map.entry("basket,table", new String[]{"photo-1558997519-83ea9252edf8", "photo-1532372320572-cda25652a6bf"}),
+                // Beauty - Skincare
+                Map.entry("serum", new String[]{"photo-1620916566398-39f1143ab7be", "photo-1608248597279-f99d160bfbc8"}),
+                Map.entry("cream,jar", new String[]{"photo-1620916566398-39f1143ab7be", "photo-1611080626919-7cf5a9dbab5b"}),
+                Map.entry("skincare,bottle", new String[]{"photo-1620916566398-39f1143ab7be", "photo-1608248597279-f99d160bfbc8"}),
+                Map.entry("face,mask,jar", new String[]{"photo-1611080626919-7cf5a9dbab5b", "photo-1620916566398-39f1143ab7be"}),
+                Map.entry("beauty,serum", new String[]{"photo-1608248597279-f99d160bfbc8", "photo-1620916566398-39f1143ab7be"}),
+                Map.entry("cosmetics", new String[]{"photo-1596462502278-27bfdc403348", "photo-1611080626919-7cf5a9dbab5b"}),
+                // Beauty - Haircare
+                Map.entry("shampoo,bottle", new String[]{"photo-1608248597279-f99d160bfbc8", "photo-1620916566398-39f1143ab7be"}),
+                Map.entry("hair,brush", new String[]{"photo-1608248597279-f99d160bfbc8", "photo-1589994961551"}),
+                Map.entry("hair,treatment", new String[]{"photo-1620916566398-39f1143ab7be", "photo-1608248597279-f99d160bfbc8"}),
+                Map.entry("curling,iron", new String[]{"photo-1589994961551", "photo-1608248597279-f99d160bfbc8"}),
+                Map.entry("hair,dryer", new String[]{"photo-1589994961551", "photo-1608248597279-f99d160bfbc8"}),
+                // Sports - Training
+                Map.entry("kettlebell", new String[]{"photo-1517836357463-d25dfeac3438", "photo-1571019613454-1cb2f99b2d8b"}),
+                Map.entry("resistance,bands", new String[]{"photo-1571019613454-1cb2f99b2d8b", "photo-1517836357463-d25dfeac3438"}),
+                Map.entry("dumbbells", new String[]{"photo-1534438327276-14e5300c3a48", "photo-1571019613454-1cb2f99b2d8b"}),
+                Map.entry("foam,roller", new String[]{"photo-1517836357463-d25dfeac3438", "photo-1571019613454-1cb2f99b2d8b"}),
+                // Sports - Outdoor
+                Map.entry("yoga,mat", new String[]{"photo-1601925260368-ae2f83cf8b7f", "photo-1518611012118-696072aa579a"}),
+                Map.entry("hiking,daypack", new String[]{"photo-1553062407-98eeb64c6a62", "photo-1483721310020-92893acbb61e"}),
+                Map.entry("camping,lantern", new String[]{"photo-1504280390367-361c6d9f38f4", "photo-1478131143081-80f7f84ca84d"}),
+                Map.entry("tent", new String[]{"photo-1504280390367-361c6d9f38f4", "photo-1478131143081-80f7f84ca84d"}),
+                Map.entry("cycling,helmet", new String[]{"photo-1558981806-ec527fa84c39", "photo-1517649763962-0c623066013b"}),
+                Map.entry("running,vest", new String[]{"photo-1553062407-98eeb64c6a62", "photo-1483721310020-92893acbb61e"}),
+                Map.entry("sleeping,pad", new String[]{"photo-1523987355523-c7b5b0dd90a7", "photo-1504280390367-361c6d9f38f4"}),
+                Map.entry("bike,pump", new String[]{"photo-1485965120184-e220f721d03e", "photo-1504280390367-361c6d9f38f4"}),
+                // Toys & Games
+                Map.entry("blocks,toy", new String[]{"photo-1587654780291-39c9404d746b", "photo-1587653917615-3c9eadb280d2"}),
+                Map.entry("robot,toy", new String[]{"photo-1587653917615-3c9eadb280d2", "photo-1587654780291-39c9404d746b"}),
+                Map.entry("art,supplies", new String[]{"photo-1513364776144-60967b0f800f", "photo-1589994961551"}),
+                Map.entry("puzzle,tiles", new String[]{"photo-1587654780291-39c9404d746b", "photo-1587653917615-3c9eadb280d2"}),
+                // Baby & Kids
+                Map.entry("bento,box", new String[]{"photo-1584568694244-14fbdf83bd30", "photo-1556909114-f6e7ad7d3136"}),
+                Map.entry("nursery,lamp", new String[]{"photo-1513506003901-1e6a229e2d15", "photo-1507473885765-e6ed057f782c"}),
+                Map.entry("baby,plate", new String[]{"photo-1563729768-6af7c46b6eb2", "photo-1610701596007-11502861dcfa"}),
+                Map.entry("baby,swaddle", new String[]{"photo-1519689680058-324335c77eba", "photo-1519681393784-d120267933ba"}),
+                // Books & Stationery
+                Map.entry("novel,book", new String[]{"photo-1544947950-fa07a98d237f", "photo-1512820790803-83ca734da794"}),
+                Map.entry("design,book", new String[]{"photo-1544947950-fa07a98d237f", "photo-1512820790803-83ca734da794"}),
+                Map.entry("planner,notebook", new String[]{"photo-1531346878377-a5be20888e57", "photo-1517842645765-c639b6bbd9c5"}),
+                Map.entry("journal", new String[]{"photo-1531346878377-a5be20888e57", "photo-1517842645765-c639b6bbd9c5"}),
+                Map.entry("desk,organizer", new String[]{"photo-1507925921958-8a62f3d1a50d", "photo-1524758631624-e2822e304c36"}),
+                Map.entry("gel,pens", new String[]{"photo-1517842645765-c639b6bbd9c5", "photo-1531346878377-a5be20888e57"}),
+                Map.entry("workbook,notebook", new String[]{"photo-1517842645765-c639b6bbd9c5", "photo-1531346878377-a5be20888e57"}),
+                Map.entry("travel,book", new String[]{"photo-1544947950-fa07a98d237f", "photo-1512820790803-83ca734da794"}),
+                Map.entry("lifestyle,book", new String[]{"photo-1512820790803-83ca734da794", "photo-1544947950-fa07a98d237f"}),
+                Map.entry("fiction,book", new String[]{"photo-1544947950-fa07a98d237f", "photo-1512820790803-83ca734da794"}),
+                Map.entry("monitor,stand", new String[]{"photo-1527443224154-c4a3942d3acf", "photo-1587829741301-dc798b83add3"}),
+                Map.entry("desk,pad", new String[]{"photo-1507925921958-8a62f3d1a50d", "photo-1524758631624-e2822e304c36"}),
+                // Pet Supplies
+                Map.entry("dog,bed", new String[]{"photo-1587300003388-59208cc962cb", "photo-1601758224511-b6a9c52ada5d"}),
+                Map.entry("dog,crate", new String[]{"photo-1587300003388-59208cc962cb", "photo-1601758224511-b6a9c52ada5d"}),
+                Map.entry("rope,dog,toy", new String[]{"photo-1601758224511-b6a9c52ada5d", "photo-1587300003388-59208cc962cb"}),
+                Map.entry("pet,bowls", new String[]{"photo-1601758224511-b6a9c52ada5d", "photo-1587300003388-59208cc962cb"}),
+                Map.entry("cat,scratching,post", new String[]{"photo-1545249390-6b5fa8d1d1c2", "photo-1601758224511-b6a9c52ada5d"}),
+                Map.entry("dog,mat", new String[]{"photo-1587300003388-59208cc962cb", "photo-1601758224511-b6a9c52ada5d"}),
+                Map.entry("dog,leash", new String[]{"photo-1601758224511-b6a9c52ada5d", "photo-1587300003388-59208cc962cb"}),
+                Map.entry("cat,toy", new String[]{"photo-1545249390-6b5fa8d1d1c2", "photo-1601758224511-b6a9c52ada5d"}),
+                Map.entry("cat,hammock", new String[]{"photo-1545249390-6b5fa8d1d1c2", "photo-1601758224511-b6a9c52ada5d"}),
+                Map.entry("cat,scratcher", new String[]{"photo-1545249390-6b5fa8d1d1c2", "photo-1601758224511-b6a9c52ada5d"}),
+                Map.entry("treat,bag", new String[]{"photo-1601758224511-b6a9c52ada5d", "photo-1587300003388-59208cc962cb"}),
+                // Food & Grocery
+                Map.entry("coffee,beans", new String[]{"photo-1559056199-641a0ac8b55e", "photo-1514432324607-a09d9b4aefdd"}),
+                Map.entry("olive,oil", new String[]{"photo-1474979266404-7eaacbcd87c5", "photo-1549465220-1a8b9238cd48"}),
+                Map.entry("chai,tea", new String[]{"photo-1564890369478-c89ca6d9cbe9", "photo-1556679343-c7306c2c9a5a"}),
+                Map.entry("dark,chocolate", new String[]{"photo-1606312619070-d48b4c652a52", "photo-1549007994-cb92caebd54b"}),
+                Map.entry("balsamic,vinegar", new String[]{"photo-1474979266404-7eaacbcd87c5", "photo-1513885535751-8b9238cd8b48"}),
+                Map.entry("gift,basket", new String[]{"photo-1549465220-1a8b9238cd48", "photo-1513885535751-8b9238cd8b48"}),
+                Map.entry("green,tea", new String[]{"photo-1564890369478-c89ca6d9cbe9", "photo-1556679343-c7306c2c9a5a"}),
+                Map.entry("lemon,olive,oil", new String[]{"photo-1474979266404-7eaacbcd87c5", "photo-1564890369478-c89ca6d9cbe9"}),
+                Map.entry("chocolate,truffle", new String[]{"photo-1606312619070-d48b4c652a52", "photo-1549007994-cb92caebd54b"}),
+                Map.entry("food,gift,basket", new String[]{"photo-1549465220-1a8b9238cd48", "photo-1513885535751-8b9238cd8b48"}),
+                Map.entry("coffee,capsules", new String[]{"photo-1559056199-641a0ac8b55e", "photo-1514432324607-a09d9b4aefdd"}),
+                Map.entry("chili,oil", new String[]{"photo-1474979266404-7eaacbcd87c5", "photo-1556679343-c7306c2c9a5a"}),
+                // Automotive
+                Map.entry("cordless,drill", new String[]{"photo-1504148455328-c376907d081c", "photo-1581092334651-ddf26d9a09d0"}),
+                Map.entry("socket,set", new String[]{"photo-1504148455328-c376907d081c", "photo-1581092334651-ddf26d9a09d0"}),
+                Map.entry("jump,starter", new String[]{"photo-1504148455328-c376907d081c", "photo-1581092334651-ddf26d9a09d0"}),
+                Map.entry("leather,care", new String[]{"photo-1601362840159-f2b43e717e5b", "photo-1504148455328-c376907d081c"}),
+                Map.entry("impact,driver", new String[]{"photo-1581092334651-ddf26d9a09d0", "photo-1504148455328-c376907d081c"}),
+                Map.entry("hex,key", new String[]{"photo-1504148455328-c376907d081c", "photo-1581092334651-ddf26d9a09d0"}),
+                Map.entry("car,organizer", new String[]{"photo-1601362840159-f2b43e717e5b", "photo-1504148455328-c376907d081c"}),
+                Map.entry("car,wax", new String[]{"photo-1601362840159-f2b43e717e5b", "photo-1504148455328-c376907d081c"}),
+                Map.entry("workshop,light", new String[]{"photo-1504148455328-c376907d081c", "photo-1581092334651-ddf26d9a09d0"}),
+                Map.entry("tire,inflator", new String[]{"photo-1504148455328-c376907d081c", "photo-1581092334651-ddf26d9a09d0"}),
+                Map.entry("microfiber,towels", new String[]{"photo-1601362840159-f2b43e717e5b", "photo-1504148455328-c376907d081c"}),
+                Map.entry("emergency,kit", new String[]{"photo-1601362840159-f2b43e717e5b", "photo-1504148455328-c376907d081c"}),
+                // Default fallback
+                Map.entry("default", new String[]{"photo-1505740420928-5e560c06d30e", "photo-1523275335684-37898b6baf30"})
+        );
+
+        // Find matching photo IDs based on tags
+        String[] matchingPhotos = photoMap.getOrDefault(tags, photoMap.get("default"));
+        int index = lock % matchingPhotos.length;
+        return matchingPhotos[index];
+    }
+
 
     private final UserRepository userRepository;
     private final SellerProfileRepository sellerProfileRepository;
@@ -38,7 +317,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
     private final CartRepository cartRepository;
     private final CouponRepository couponRepository;
     private final PasswordEncoder passwordEncoder;
-    private final Map<String, BufferedImage> seedImageCache = new HashMap<>();
 
     @Override
     @Transactional
@@ -71,15 +349,36 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
         return sellerSeeds.stream().allMatch(sellerSeed ->
                 sellerSeed.products().stream().allMatch(productSeed ->
                         productRepository.findBySeller_EmailAndNameIgnoreCase(sellerSeed.email(), productSeed.name())
-                                .filter(product -> product.getImages().stream().anyMatch(this::hasCurrentSeedImage))
+                                .filter(product -> hasCurrentSeedImages(product, mediaFor(productSeed.name())))
                                 .isPresent()));
     }
 
-    private boolean hasCurrentSeedImage(ProductImage image) {
-        return image.getImageData() != null
-                && image.getImageData().length > 0
-                && image.getImageUrl() != null
-                && image.getImageUrl().startsWith(SEED_IMAGE_URL_PREFIX);
+    private boolean hasCurrentSeedImages(Product product, ProductMediaSeed expectedMedia) {
+        List<ProductImage> images = sortedImages(product);
+        List<String> expectedUrls = expectedMedia.urls();
+        if (images.size() != expectedUrls.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < images.size(); i++) {
+            ProductImage image = images.get(i);
+            if (!Objects.equals(image.getImageUrl(), expectedUrls.get(i))
+                    || (image.getImageData() != null && image.getImageData().length > 0)
+                    || image.getFileName() == null
+                    || !image.getFileName().startsWith(SEED_IMAGE_MARKER)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private List<ProductImage> sortedImages(Product product) {
+        return product.getImages().stream()
+                .sorted(Comparator
+                        .comparing(ProductImage::isPrimaryImage)
+                        .reversed()
+                        .thenComparing(image -> image.getId() == null ? Long.MAX_VALUE : image.getId()))
+                .toList();
     }
 
     private Map<String, User> createSellers(List<SellerSeed> sellerSeeds) {
@@ -222,7 +521,7 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 product.getCategories().add(categoriesByName.get(branchName));
                 product.getCategories().add(categoriesByName.get(leafName));
 
-                attachImages(product, seed, sellerSeed, productIndex);
+                attachImages(product, seed);
                 if (product.getVariants().isEmpty()) {
                     addVariants(product, seed.variantProfile(), seed.stock());
                 }
@@ -479,285 +778,43 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
         return products.get(startIndex % products.size());
     }
 
-    private void attachImages(Product product, ProductSeed seed, SellerSeed sellerSeed, int startIndex) {
+    private void attachImages(Product product, ProductSeed seed) {
         product.getImages().clear();
 
-        List<String> productImages = getProductSpecificImages(
-                product.getName(),
-                sellerSeed.department(),
-                seed.leaf(),
-                sellerSeed.imageBank(),
-                startIndex
-        );
+        ProductMediaSeed media = mediaFor(seed.name());
+        Set<String> seenUrls = new HashSet<>();
+        List<String> urls = media.urls();
+        for (int i = 0; i < urls.size(); i++) {
+            String imageUrl = urls.get(i);
+            if (!seenUrls.add(imageUrl)) {
+                throw new IllegalStateException("Duplicate seed media URL for " + seed.name());
+            }
 
-        String baseImage = productImages.get(0);
-        List<CropPreset> cropPresets = galleryCropPresets(seed.leaf(), seed.name());
-
-        for (int i = 0; i < cropPresets.size(); i++) {
-            CropPreset preset = cropPresets.get(i);
-            String variantFileName = variantFileName(baseImage, preset.suffix());
+            String fileName = SEED_IMAGE_MARKER + slugify(seed.name()) + "-" + (i + 1) + ".jpg";
             product.getImages().add(ProductImage.builder()
                     .product(product)
-                    .imageUrl(SEED_IMAGE_URL_PREFIX + variantFileName)
-                    .imageData(renderSeedImageVariant(baseImage, preset))
-                    .contentType(contentTypeFor(baseImage))
-                    .fileName(variantFileName)
+                    .imageUrl(imageUrl)
+                    .imageData(null)
+                    .contentType("image/jpeg")
+                    .fileName(fileName)
                     .primaryImage(i == 0)
                     .build());
         }
     }
-    
-    private List<String> getProductSpecificImages(String productName,
-                                                  String department,
-                                                  String leaf,
-                                                  List<String> imageBank,
-                                                  int startIndex) {
-        String lowerName = productName.toLowerCase();
 
-        return switch (department) {
-            case "Fashion" -> switch (leaf) {
-                case "Dresses" -> List.of("fashion-01.jpg", "fashion-05.jpg", "fashion-02.jpg");
-                case "Outerwear" -> List.of("fashion-02.jpg", "fashion-05.jpg", "fashion-01.jpg");
-                case "Bags" -> List.of("fashion-03.jpg", "fashion-02.jpg", "fashion-05.jpg");
-                case "Jewelry" -> List.of("fashion-04.jpg", "fashion-03.jpg", "fashion-05.jpg");
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            case "Electronics" -> switch (leaf) {
-                case "Headphones" -> List.of("electronics-01.jpg", "electronics-05.jpg", "electronics-04.jpg");
-                case "Speakers" -> lowerName.contains("microphone")
-                        ? List.of("electronics-05.jpg", "electronics-04.jpg", "electronics-03.jpg")
-                        : List.of("electronics-02.jpg", "electronics-05.jpg", "electronics-04.jpg");
-                case "Displays" -> List.of("electronics-03.jpg", "electronics-05.jpg", "electronics-04.jpg");
-                case "Peripherals" -> lowerName.contains("dock") || lowerName.contains("stand")
-                        ? List.of("electronics-05.jpg", "electronics-04.jpg", "electronics-03.jpg")
-                        : List.of("electronics-04.jpg", "electronics-05.jpg", "electronics-03.jpg");
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            case "Home & Living" -> switch (leaf) {
-                case "Accent Furniture" -> lowerName.contains("table") || lowerName.contains("console")
-                        ? List.of("home-05.jpg", "home-01.jpg", "home-03.jpg")
-                        : List.of("home-01.jpg", "home-05.jpg", "home-02.jpg");
-                case "Lighting" -> List.of("home-02.jpg", "home-01.jpg", "home-05.jpg");
-                case "Cookware" -> List.of("home-04.jpg", "home-03.jpg", "home-05.jpg");
-                case "Serveware" -> List.of("home-03.jpg", "home-04.jpg", "home-05.jpg");
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            case "Beauty" -> switch (leaf) {
-                case "Serums" -> List.of("beauty-01.jpg", "beauty-02.jpg", "beauty-05.jpg");
-                case "Moisturizers" -> lowerName.contains("mask") || lowerName.contains("gel")
-                        ? List.of("beauty-05.jpg", "beauty-02.jpg", "beauty-01.jpg")
-                        : List.of("beauty-02.jpg", "beauty-01.jpg", "beauty-05.jpg");
-                case "Shampoo & Treatment" -> List.of("beauty-03.jpg", "beauty-02.jpg", "beauty-05.jpg");
-                case "Styling Tools" -> List.of("beauty-04.jpg", "beauty-03.jpg", "beauty-05.jpg");
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            case "Sports" -> switch (leaf) {
-                case "Strength Gear" -> List.of("sports-01.jpg", "sports-03.jpg", "sports-02.jpg");
-                case "Yoga & Recovery" -> List.of("sports-03.jpg", "sports-01.jpg", "sports-04.jpg");
-                case "Camping" -> lowerName.contains("daypack")
-                        ? List.of("sports-02.jpg", "sports-04.jpg", "sports-05.jpg")
-                        : List.of("sports-04.jpg", "sports-02.jpg", "sports-05.jpg");
-                case "Cycling" -> lowerName.contains("vest")
-                        ? List.of("sports-02.jpg", "sports-05.jpg", "sports-04.jpg")
-                        : List.of("sports-05.jpg", "sports-02.jpg", "sports-04.jpg");
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            case "Kids & Toys" -> switch (leaf) {
-                case "STEM Toys" -> lowerName.contains("coding")
-                        ? List.of("kids-05.jpg", "kids-01.jpg", "kids-02.jpg")
-                        : List.of("kids-01.jpg", "kids-05.jpg", "kids-02.jpg");
-                case "Arts & Crafts" -> List.of("kids-02.jpg", "kids-01.jpg", "kids-04.jpg");
-                case "Feeding" -> List.of("kids-03.jpg", "kids-04.jpg", "kids-02.jpg");
-                case "Room Decor" -> List.of("kids-04.jpg", "kids-03.jpg", "kids-05.jpg");
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            case "Books & Stationery" -> switch (leaf) {
-                case "Fiction" -> List.of("books-01.jpg", "books-02.jpg", "books-03.jpg");
-                case "Non-Fiction" -> List.of("books-02.jpg", "books-01.jpg", "books-03.jpg");
-                case "Journals" -> List.of("books-03.jpg", "books-04.jpg", "books-05.jpg");
-                case "Office Tools" -> lowerName.contains("riser")
-                        ? List.of("books-05.jpg", "books-04.jpg", "books-03.jpg")
-                        : List.of("books-04.jpg", "books-05.jpg", "books-03.jpg");
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            case "Pet Supplies" -> switch (leaf) {
-                case "Beds & Travel" -> lowerName.contains("crate") || lowerName.contains("lead")
-                        ? List.of("pets-02.jpg", "pets-01.jpg", "pets-04.jpg")
-                        : List.of("pets-01.jpg", "pets-02.jpg", "pets-03.jpg");
-                case "Toys" -> List.of("pets-03.jpg", "pets-01.jpg", "pets-02.jpg");
-                case "Feeding" -> List.of("pets-04.jpg", "pets-05.jpg", "pets-01.jpg");
-                case "Scratchers" -> lowerName.contains("wand")
-                        ? List.of("pets-03.jpg", "pets-05.jpg", "pets-04.jpg")
-                        : List.of("pets-05.jpg", "pets-04.jpg", "pets-03.jpg");
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            case "Grocery & Gourmet" -> switch (leaf) {
-                case "Coffee & Tea" -> lowerName.contains("coffee") || lowerName.contains("espresso")
-                        ? List.of("grocery-01.jpg", "grocery-03.jpg", "grocery-05.jpg")
-                        : List.of("grocery-03.jpg", "grocery-01.jpg", "grocery-05.jpg");
-                case "Olive Oil & Vinegar" -> List.of("grocery-02.jpg", "grocery-05.jpg", "grocery-03.jpg");
-                case "Chocolate" -> List.of("grocery-04.jpg", "grocery-05.jpg", "grocery-01.jpg");
-                case "Gift Boxes" -> List.of("grocery-05.jpg", "grocery-04.jpg", "grocery-02.jpg");
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            case "Automotive & Tools" -> switch (leaf) {
-                case "Power Tools" -> lowerName.contains("light")
-                        ? List.of("tools-03.jpg", "tools-01.jpg", "tools-04.jpg")
-                        : List.of("tools-01.jpg", "tools-02.jpg", "tools-03.jpg");
-                case "Hand Tools" -> List.of("tools-02.jpg", "tools-01.jpg", "tools-03.jpg");
-                case "Interior Care" -> List.of("tools-05.jpg", "tools-04.jpg", "tools-03.jpg");
-                case "Emergency Kits" -> {
-                    if (lowerName.contains("tire") || lowerName.contains("inflator")) {
-                        yield List.of("tools-04.jpg", "tools-03.jpg", "tools-05.jpg");
-                    }
-                    if (lowerName.contains("battery")) {
-                        yield List.of("tools-03.jpg", "tools-04.jpg", "tools-05.jpg");
-                    }
-                    if (lowerName.contains("organizer")) {
-                        yield List.of("tools-04.jpg", "tools-03.jpg", "tools-05.jpg");
-                    }
-                    yield List.of("tools-03.jpg", "tools-05.jpg", "tools-04.jpg");
-                }
-                default -> rotatedImages(imageBank, startIndex);
-            };
-            default -> rotatedImages(imageBank, startIndex);
-        };
+    private ProductMediaSeed mediaFor(String productName) {
+        ProductMediaSeed media = PRODUCT_MEDIA.get(productName);
+        if (media == null) {
+            throw new IllegalStateException("Missing seed media for product: " + productName);
+        }
+        return media;
     }
 
-    private List<String> rotatedImages(List<String> imageBank, int startIndex) {
-        if (imageBank == null || imageBank.isEmpty()) {
-            return List.of("home-01.jpg", "home-02.jpg", "home-03.jpg");
-        }
-
-        return List.of(
-                imageBank.get(startIndex % imageBank.size()),
-                imageBank.get((startIndex + 1) % imageBank.size()),
-                imageBank.get((startIndex + 2) % imageBank.size())
-        );
-    }
-
-    private List<CropPreset> galleryCropPresets(String leaf, String productName) {
-        String lowerName = productName.toLowerCase(Locale.ROOT);
-
-        if (Set.of("Displays", "Accent Furniture", "Lighting", "Cookware", "Serveware").contains(leaf)
-                || lowerName.contains("monitor")
-                || lowerName.contains("speaker")
-                || lowerName.contains("table")
-                || lowerName.contains("console")
-                || lowerName.contains("stand")) {
-            return List.of(
-                    new CropPreset("hero", 1.02, 0.0, 0.0),
-                    new CropPreset("detail", 1.10, 0.0, 0.02),
-                    new CropPreset("close", 1.18, 0.0, 0.04)
-            );
-        }
-
-        if (Set.of("Jewelry", "Bags", "Serums", "Moisturizers", "Office Tools", "Chocolate",
-                "Coffee & Tea", "Olive Oil & Vinegar").contains(leaf)
-                || lowerName.contains("ring")
-                || lowerName.contains("bracelet")
-                || lowerName.contains("serum")
-                || lowerName.contains("drops")
-                || lowerName.contains("journal")
-                || lowerName.contains("notebook")
-                || lowerName.contains("coffee")
-                || lowerName.contains("olive")
-                || lowerName.contains("vinegar")) {
-            return List.of(
-                    new CropPreset("hero", 1.10, 0.0, -0.01),
-                    new CropPreset("detail", 1.22, 0.0, 0.01),
-                    new CropPreset("close", 1.34, 0.0, 0.04)
-            );
-        }
-
-        return List.of(
-                new CropPreset("hero", 1.06, 0.0, -0.01),
-                new CropPreset("detail", 1.16, 0.0, 0.01),
-                new CropPreset("close", 1.26, 0.0, 0.04)
-        );
-    }
-
-    private String variantFileName(String fileName, String suffix) {
-        int extensionIndex = fileName.lastIndexOf('.');
-        if (extensionIndex < 0) {
-            return fileName + "-" + suffix + ".jpg";
-        }
-        return fileName.substring(0, extensionIndex) + "-" + suffix + fileName.substring(extensionIndex);
-    }
-
-    private byte[] renderSeedImageVariant(String fileName, CropPreset preset) {
-        BufferedImage source = readSeedImage(fileName);
-        int sourceSize = Math.min(source.getWidth(), source.getHeight());
-        int cropSize = Math.max(280, Math.min(sourceSize, (int) Math.round(sourceSize / Math.max(1.0, preset.zoom()))));
-        int maxX = Math.max(0, source.getWidth() - cropSize);
-        int maxY = Math.max(0, source.getHeight() - cropSize);
-        double centerX = source.getWidth() * (0.5 + preset.xShift());
-        double centerY = source.getHeight() * (0.5 + preset.yShift());
-        int cropX = clamp((int) Math.round(centerX - cropSize / 2.0), 0, maxX);
-        int cropY = clamp((int) Math.round(centerY - cropSize / 2.0), 0, maxY);
-
-        BufferedImage output = new BufferedImage(900, 900, BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics = output.createGraphics();
-        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        graphics.drawImage(
-                source,
-                0,
-                0,
-                output.getWidth(),
-                output.getHeight(),
-                cropX,
-                cropY,
-                cropX + cropSize,
-                cropY + cropSize,
-                null
-        );
-        graphics.dispose();
-
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            ImageIO.write(output, "jpg", outputStream);
-            return outputStream.toByteArray();
-        } catch (IOException exception) {
-            throw new IllegalStateException("Unable to render seed image asset: " + fileName, exception);
-        }
-    }
-
-    private BufferedImage readSeedImage(String fileName) {
-        BufferedImage cached = seedImageCache.get(fileName);
-        if (cached != null) {
-            return cached;
-        }
-
-        String resourcePath = "/seed-images/" + fileName;
-        try (InputStream inputStream = DevMarketplaceSeeder.class.getResourceAsStream(resourcePath)) {
-            if (inputStream == null) {
-                throw new IllegalStateException("Missing seed image asset: " + resourcePath);
-            }
-            BufferedImage image = ImageIO.read(inputStream);
-            if (image == null) {
-                throw new IllegalStateException("Unsupported seed image asset: " + resourcePath);
-            }
-            seedImageCache.put(fileName, image);
-            return image;
-        } catch (IOException exception) {
-            throw new IllegalStateException("Unable to read seed image asset: " + resourcePath, exception);
-        }
-    }
-
-    private int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    private String contentTypeFor(String fileName) {
-        String lowerName = fileName.toLowerCase(Locale.ROOT);
-        if (lowerName.endsWith(".png")) {
-            return "image/png";
-        }
-        if (lowerName.endsWith(".webp")) {
-            return "image/webp";
-        }
-        return "image/jpeg";
+    private String slugify(String value) {
+        String slug = value.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-|-$)", "");
+        return slug.isBlank() ? "product" : slug;
     }
 
     private void addVariants(Product product, VariantProfile profile, int stock) {
@@ -915,16 +972,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
         );
     }
 
-    private List<String> seedImages(String slug) {
-        return List.of(
-                slug + "-01.jpg",
-                slug + "-02.jpg",
-                slug + "-03.jpg",
-                slug + "-04.jpg",
-                slug + "-05.jpg"
-        );
-    }
-
     private SellerSeed fashionSeller() {
         return new SellerSeed(
                 "seller@shopflow.com",
@@ -935,7 +982,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.9,
                 "Fashion",
-                seedImages("fashion"),
                 List.of(
                         new ProductSeed("Verona Satin Midi Dress", "Women's Wear", "Dresses", "evening events, weddings, and polished dinners", 189.0, 12, 14, 184, VariantProfile.FASHION_SIZE),
                         new ProductSeed("Alder Trench Coat", "Women's Wear", "Outerwear", "transitional layering with clean tailoring", 249.0, 10, 9, 136, VariantProfile.FASHION_SIZE),
@@ -963,7 +1009,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.8,
                 "Electronics",
-                seedImages("electronics"),
                 List.of(
                         new ProductSeed("Nova ANC Wireless Headphones", "Audio", "Headphones", "commutes, focus sessions, and travel", 249.0, 14, 20, 311, VariantProfile.ELECTRONICS_COLOR),
                         new ProductSeed("Echo Shelf Speaker Pair", "Audio", "Speakers", "compact rooms that still need full sound", 189.0, null, 14, 165, VariantProfile.ELECTRONICS_COLOR),
@@ -991,7 +1036,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.8,
                 "Home & Living",
-                seedImages("home"),
                 List.of(
                         new ProductSeed("Rowan Boucle Accent Chair", "Living Room", "Accent Furniture", "reading corners and conversation spaces", 389.0, 12, 5, 92, VariantProfile.HOME_FINISH),
                         new ProductSeed("Solis Brass Floor Lamp", "Living Room", "Lighting", "warm ambient corners and evening light", 214.0, null, 11, 133, VariantProfile.HOME_SIZE),
@@ -1019,7 +1063,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.7,
                 "Beauty",
-                seedImages("beauty"),
                 List.of(
                         new ProductSeed("Cloud Dew Hyaluronic Serum", "Skincare", "Serums", "dehydrated skin and lightweight layering", 42.0, 10, 36, 274, VariantProfile.BEAUTY_SIZE),
                         new ProductSeed("Barrier Repair Cream", "Skincare", "Moisturizers", "dry skin support and winter routines", 36.0, null, 28, 246, VariantProfile.BEAUTY_SIZE),
@@ -1047,7 +1090,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.8,
                 "Sports",
-                seedImages("sports"),
                 List.of(
                         new ProductSeed("Granite Grip Kettlebell 16kg", "Training", "Strength Gear", "compact home gyms and full-body sessions", 74.0, null, 16, 239, VariantProfile.SPORTS_SIZE),
                         new ProductSeed("Ridge Trail Daypack", "Outdoor Adventure", "Camping", "day hikes and organized weekend packing", 92.0, 10, 14, 188, VariantProfile.SPORTS_PACK),
@@ -1075,7 +1117,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.7,
                 "Kids & Toys",
-                seedImages("kids"),
                 List.of(
                         new ProductSeed("Orbit Magnetic Builder Set", "Learning Play", "STEM Toys", "open-ended building and problem solving", 46.0, null, 24, 251, VariantProfile.KIDS_AGE),
                         new ProductSeed("Little Makers Art Caddy", "Learning Play", "Arts & Crafts", "mess-friendly creative afternoons", 34.0, 8, 18, 179, VariantProfile.KIDS_AGE),
@@ -1103,7 +1144,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.8,
                 "Books & Stationery",
-                seedImages("books"),
                 List.of(
                         new ProductSeed("Midnight Harbor: A Novel", "Reading", "Fiction", "curl-up evenings and gift tables", 24.0, null, 32, 144, VariantProfile.BOOK_FORMAT),
                         new ProductSeed("Design Systems Field Guide", "Reading", "Non-Fiction", "product teams and organized creative workflows", 42.0, 10, 20, 108, VariantProfile.BOOK_FORMAT),
@@ -1131,7 +1171,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.8,
                 "Pet Supplies",
-                seedImages("pets"),
                 List.of(
                         new ProductSeed("Harbor Orthopedic Dog Bed", "Dog Care", "Beds & Travel", "larger breeds and older dogs needing support", 96.0, 10, 14, 183, VariantProfile.PET_SIZE),
                         new ProductSeed("Rover Trail Travel Crate", "Dog Care", "Beds & Travel", "road trips and secure in-car transport", 148.0, null, 8, 121, VariantProfile.PET_SIZE),
@@ -1159,7 +1198,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.7,
                 "Grocery & Gourmet",
-                seedImages("grocery"),
                 List.of(
                         new ProductSeed("Atlas Roast Coffee Beans", "Pantry", "Coffee & Tea", "daily brews with rich chocolate notes", 18.0, null, 40, 286, VariantProfile.GROCERY_PACK),
                         new ProductSeed("Citrus Grove Extra Virgin Olive Oil", "Pantry", "Olive Oil & Vinegar", "bright finishing and everyday cooking", 24.0, 8, 26, 174, VariantProfile.GROCERY_PACK),
@@ -1187,7 +1225,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                 null,
                 4.8,
                 "Automotive & Tools",
-                seedImages("tools"),
                 List.of(
                         new ProductSeed("TorqueMax Cordless Drill", "Garage Tools", "Power Tools", "quick home fixes and shelf installs", 139.0, 10, 13, 176, VariantProfile.TOOLS_KIT),
                         new ProductSeed("Precision Ratchet Socket Set", "Garage Tools", "Hand Tools", "weekend maintenance and compact tool drawers", 88.0, null, 19, 153, VariantProfile.TOOLS_KIT),
@@ -1365,7 +1402,6 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                               String logoUrl,
                               double rating,
                               String department,
-                              List<String> imageBank,
                               List<ProductSeed> products) {
     }
 
@@ -1383,7 +1419,7 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
                                VariantProfile variantProfile) {
     }
 
-    private record CropPreset(String suffix, double zoom, double xShift, double yShift) {
+    private record ProductMediaSeed(String sourceTags, List<String> urls) {
     }
 
     private record DepartmentSeed(String name, String description, List<CategoryBranchSeed> branches) {

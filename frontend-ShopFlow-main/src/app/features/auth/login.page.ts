@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { SessionService } from '../../core/services/session.service';
@@ -43,7 +43,6 @@ import { IconComponent } from '../../shared/components/icon.component';
                 <input type="checkbox" class="accent-emerald-400" formControlName="remember" />
                 Remember me
               </label>
-              <button type="button" class="text-zinc-300 hover:text-white">Forgot password?</button>
             </div>
           </div>
 
@@ -57,18 +56,6 @@ import { IconComponent } from '../../shared/components/icon.component';
             {{ loginPending() ? 'Logging in...' : 'Log in' }}
           </button>
 
-          <div class="relative flex items-center gap-4 text-sm text-zinc-600">
-            <span class="h-px flex-1 bg-white/10"></span>
-            or continue with
-            <span class="h-px flex-1 bg-white/10"></span>
-          </div>
-
-          <div class="grid gap-3 sm:grid-cols-3">
-            @for (provider of socialProviders; track provider) {
-              <button type="button" class="button-secondary w-full">{{ provider }}</button>
-            }
-          </div>
-
           <p class="text-center text-zinc-400 pt-6">
             Don't have an account?
             <a routerLink="/register" class="font-semibold text-white hover:underline">Sign up</a>
@@ -81,6 +68,7 @@ import { IconComponent } from '../../shared/components/icon.component';
 export class LoginPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(AuthService);
   private readonly session = inject(SessionService);
 
@@ -92,9 +80,6 @@ export class LoginPageComponent {
     password: ['', Validators.required],
     remember: true
   });
-
-  readonly socialProviders = ['Google', 'Apple', 'Facebook'];
-
   submitLogin(): void {
     this.loginError.set('');
     if (this.loginForm.invalid) {
@@ -113,7 +98,13 @@ export class LoginPageComponent {
   }
 
   private handleRedirect(): void {
-    const redirect = this.session.isSeller() ? '/seller/dashboard' : '/account/dashboard';
-    void this.router.navigateByUrl(redirect);
+    const redirect = this.route.snapshot.queryParamMap.get('redirect');
+    if (redirect) {
+      void this.router.navigateByUrl(redirect);
+      return;
+    }
+
+    const defaultRedirect = this.session.isSeller() ? '/seller/dashboard' : '/account/dashboard';
+    void this.router.navigateByUrl(defaultRedirect);
   }
 }

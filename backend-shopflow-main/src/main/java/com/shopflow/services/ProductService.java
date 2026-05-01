@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -191,6 +192,7 @@ public class ProductService {
                 product.getStock(),
                 product.getSalesCount(),
                 categories,
+                product.getSeller().getId(),
                 product.getSeller().getFirstName() + " " + product.getSeller().getLastName(),
                 imageUrls,
                 variants,
@@ -233,12 +235,61 @@ public class ProductService {
         }
         for (int i = 0; i < imageUrls.size(); i++) {
             String url = imageUrls.get(i);
-            product.getImages().add(ProductImage.builder()
+            if (url == null || url.isBlank()) {
+                continue;
+            }
+
+            ProductImage image = ProductImage.builder()
                     .product(product)
-                    .imageUrl(url)
                     .primaryImage(i == 0)
-                    .build());
+                    .build();
+
+            if (url.startsWith("data:image/")) {
+                ParsedImageData parsedImage = parseImageDataUrl(url);
+                String fileName = "seller-upload-" + UUID.randomUUID() + "." + extensionFor(parsedImage.contentType());
+                image.setImageUrl("seller-uploads/" + fileName);
+                image.setImageData(parsedImage.bytes());
+                image.setContentType(parsedImage.contentType());
+                image.setFileName(fileName);
+            } else {
+                image.setImageUrl(url);
+            }
+
+            product.getImages().add(image);
         }
+    }
+
+    private ParsedImageData parseImageDataUrl(String dataUrl) {
+        int commaIndex = dataUrl.indexOf(',');
+        if (commaIndex < 0) {
+            throw new BadRequestException("Invalid image data URL");
+        }
+
+        String metadata = dataUrl.substring("data:".length(), commaIndex);
+        String encoded = dataUrl.substring(commaIndex + 1);
+        String contentType = metadata.split(";")[0];
+        if (contentType.isBlank() || !contentType.startsWith("image/")) {
+            throw new BadRequestException("Unsupported image content type");
+        }
+        if (!metadata.toLowerCase(Locale.ROOT).contains(";base64")) {
+            throw new BadRequestException("Image data URL must be base64 encoded");
+        }
+
+        try {
+            return new ParsedImageData(contentType, Base64.getDecoder().decode(encoded.getBytes(StandardCharsets.UTF_8)));
+        } catch (IllegalArgumentException exception) {
+            throw new BadRequestException("Invalid image data");
+        }
+    }
+
+    private String extensionFor(String contentType) {
+        return switch (contentType.toLowerCase(Locale.ROOT)) {
+            case "image/png" -> "png";
+            case "image/webp" -> "webp";
+            case "image/svg+xml" -> "svg";
+            case "image/gif" -> "gif";
+            default -> "jpg";
+        };
     }
 
     private String toImageSource(ProductImage image) {
@@ -286,5 +337,8 @@ public class ProductService {
         if (!isAdmin && !isOwner) {
             throw new BadRequestException("You cannot manage this product");
         }
+    }
+
+    private record ParsedImageData(String contentType, byte[] bytes) {
     }
 }

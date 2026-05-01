@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -34,7 +34,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
           title="Buyer checkout only"
           message="Secure checkout is available for customer accounts. Sign in with a buyer account to place an order."
         >
-          <a routerLink="/auth" [queryParams]="{ mode: 'login', redirect: '/checkout' }" class="button-primary px-8">
+          <a routerLink="/login" [queryParams]="{ redirect: '/checkout' }" class="button-primary px-8">
             Sign in to checkout
           </a>
         </app-empty-state>
@@ -60,11 +60,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
             <div class="space-y-3">
               <h1 class="font-display text-5xl font-semibold tracking-[-0.05em] text-white">Checkout</h1>
               <p class="text-lg text-zinc-400">
-                Complete your order by providing your details and payment information.
-              </p>
-              <p class="inline-flex items-center gap-2 text-sm text-zinc-400">
-                <app-icon name="lock" [size]="15" className="text-zinc-400" />
-                All transactions are secure and encrypted.
+                Complete your order with a shipping address.
               </p>
             </div>
 
@@ -76,74 +72,11 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                  <input class="input-dark" formControlName="fullName" placeholder="Full Name" />
-                  <input class="input-dark" formControlName="email" placeholder="Email Address" />
-                  <input class="input-dark sm:col-span-2" formControlName="phoneNumber" placeholder="Phone Number" />
                   <input class="input-dark sm:col-span-2" formControlName="street" placeholder="Street Address" />
                   <input class="input-dark" formControlName="apartment" placeholder="Apartment, suite, etc. (optional)" />
                   <input class="input-dark" formControlName="city" placeholder="City" />
-                  <input class="input-dark" formControlName="state" placeholder="State / Province" />
                   <input class="input-dark" formControlName="postalCode" placeholder="ZIP / Postal Code" />
                   <input class="input-dark" formControlName="country" placeholder="Country" />
-                </div>
-              </section>
-
-              <section class="space-y-4">
-                <div class="flex items-center gap-3">
-                  <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-sm font-semibold text-white">2</span>
-                  <h2 class="text-base font-semibold text-white">Shipping Method</h2>
-                </div>
-
-                <label class="flex items-center justify-between rounded-md border border-white/10 bg-white/[0.03] px-5 py-4">
-                  <span class="flex items-center gap-4">
-                    <input type="radio" formControlName="shippingMethod" value="standard" class="accent-emerald-400" />
-                    <span>
-                      <span class="block text-lg font-semibold text-white">Standard Shipping</span>
-                      <span class="text-sm text-zinc-400">Est. delivery: 2 to 4 business days</span>
-                    </span>
-                  </span>
-                  <span class="text-lg font-semibold text-white">Free</span>
-                </label>
-
-                <label class="flex items-center justify-between rounded-md border border-white/10 bg-white/[0.03] px-5 py-4">
-                  <span class="flex items-center gap-4">
-                    <input type="radio" formControlName="shippingMethod" value="express" class="accent-emerald-400" />
-                    <span>
-                      <span class="block text-lg font-semibold text-white">Express Shipping</span>
-                      <span class="text-sm text-zinc-400">Arrives sooner for time-sensitive orders</span>
-                    </span>
-                  </span>
-                  <span class="text-lg font-semibold text-white">$9.99</span>
-                </label>
-              </section>
-
-              <section class="space-y-4">
-                <div class="flex items-center gap-3">
-                  <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-sm font-semibold text-white">3</span>
-                  <h2 class="text-base font-semibold text-white">Payment Method</h2>
-                </div>
-
-                <div class="grid gap-4 lg:grid-cols-[0.58fr,0.42fr]">
-                  <div class="space-y-3">
-                    @for (method of paymentMethods; track method.value) {
-                      <label class="flex items-center gap-4 rounded-md border border-white/10 bg-white/[0.03] px-5 py-4">
-                        <input type="radio" formControlName="paymentMethod" [value]="method.value" class="accent-emerald-400" />
-                        <span class="flex items-center gap-3">
-                          <app-icon [name]="method.icon" [size]="18" className="text-zinc-200" />
-                          <span class="text-lg font-semibold text-white">{{ method.label }}</span>
-                        </span>
-                      </label>
-                    }
-                  </div>
-
-                  <div class="space-y-3">
-                    <input class="input-dark" formControlName="cardNumber" placeholder="Card Number" />
-                    <div class="grid grid-cols-2 gap-3">
-                      <input class="input-dark" formControlName="expirationDate" placeholder="MM / YY" />
-                      <input class="input-dark" formControlName="cvc" placeholder="CVV" />
-                    </div>
-                    <input class="input-dark" formControlName="nameOnCard" placeholder="Name on Card" />
-                  </div>
                 </div>
               </section>
 
@@ -154,7 +87,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               }
 
               <button type="button" class="button-primary w-full text-base" (click)="placeOrder()" [disabled]="submitting()">
-                Place Order <span>&bull;</span> <strong>{{ summary().total | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+                Place Order <span>&bull;</span> <strong>{{ cartService.cart().totalTtc | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
                 <app-icon name="lock" [size]="16" className="ml-auto text-black" />
               </button>
             </div>
@@ -180,17 +113,19 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               <div class="space-y-4 text-base">
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-400">Subtotal</span>
-                  <span class="text-white">{{ summary().subtotal | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
+                  <span class="text-white">{{ cartService.cart().subtotal | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
                 </div>
+                @if (cartService.cart().discount > 0) {
+                  <div class="flex items-center justify-between">
+                    <span class="text-zinc-400">Discount</span>
+                    <span class="text-emerald-300">-{{ cartService.cart().discount | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
+                  </div>
+                }
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-400">Shipping</span>
                   <span class="text-emerald-300">
-                    {{ summary().shipping === 0 ? 'Free' : (summary().shipping | currency: 'USD' : 'symbol' : '1.2-2') }}
+                    {{ cartService.cart().shippingFee === 0 ? 'Free' : (cartService.cart().shippingFee | currency: 'USD' : 'symbol' : '1.2-2') }}
                   </span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-zinc-400">Estimated Taxes</span>
-                  <span class="text-white">{{ summary().taxes | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
                 </div>
               </div>
 
@@ -199,22 +134,8 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               <div class="flex items-center justify-between">
                 <span class="text-2xl font-semibold text-white">Total</span>
                 <span class="text-4xl font-semibold tracking-tight text-white">
-                  {{ summary().total | currency: 'USD' : 'symbol' : '1.2-2' }}
+                  {{ cartService.cart().totalTtc | currency: 'USD' : 'symbol' : '1.2-2' }}
                 </span>
-              </div>
-
-              <div class="mt-8 space-y-4 rounded-[24px] border border-white/8 bg-white/[0.02] p-5">
-                @for (trust of trustPoints; track trust.title) {
-                  <div class="flex items-start gap-4">
-                    <span class="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
-                      <app-icon [name]="trust.icon" [size]="18" className="text-zinc-100" />
-                    </span>
-                    <div>
-                      <p class="text-lg font-semibold text-white">{{ trust.title }}</p>
-                      <p class="text-sm leading-6 text-zinc-400">{{ trust.body }}</p>
-                    </div>
-                  </div>
-                }
               </div>
             </app-panel-card>
           </aside>
@@ -237,21 +158,11 @@ export class CheckoutPageComponent {
   readonly selectedAddressId = signal<number | null>(null);
 
   readonly checkoutForm = this.fb.nonNullable.group({
-    fullName: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    phoneNumber: ['', Validators.required],
     street: ['', Validators.required],
     apartment: [''],
     city: ['', Validators.required],
-    state: ['', Validators.required],
     postalCode: ['', Validators.required],
-    country: ['United States', Validators.required],
-    shippingMethod: 'standard',
-    paymentMethod: 'card',
-    cardNumber: ['', Validators.required],
-    expirationDate: ['', Validators.required],
-    cvc: ['', Validators.required],
-    nameOnCard: ['', Validators.required]
+    country: ['United States', Validators.required]
   });
 
   readonly enrichedItems = toSignal(
@@ -274,50 +185,9 @@ export class CheckoutPageComponent {
     { initialValue: [] }
   );
 
-  readonly summary = computed(() => {
-    const subtotal = this.enrichedItems().reduce((total, item) => total + item.totalPrice, 0);
-    const shipping = this.checkoutForm.controls.shippingMethod.value === 'express' ? 9.99 : 0;
-    const taxes = subtotal * 0.08;
-
-    return {
-      subtotal,
-      shipping,
-      taxes,
-      total: subtotal + shipping + taxes
-    };
-  });
-
-  readonly paymentMethods = [
-    { value: 'card', label: 'Credit / Debit Card', icon: 'card' },
-    { value: 'paypal', label: 'PayPal', icon: 'wallet' },
-    { value: 'apple-pay', label: 'Apple Pay', icon: 'bag' }
-  ];
-
-  readonly trustPoints = [
-    {
-      icon: 'shield-check',
-      title: 'Secure Payments',
-      body: 'Your payment information is encrypted and secure.'
-    },
-    {
-      icon: 'arrow-left',
-      title: '30-Day Returns',
-      body: 'Not satisfied? Get a full refund within 30 days.'
-    }
-  ];
-
   constructor() {
     this.cartService.loadCart().subscribe();
     this.addressService.loadAddresses().subscribe();
-
-    const user = this.session.user();
-    if (user) {
-      this.checkoutForm.patchValue({
-        fullName: `${user.firstName} ${user.lastName}`,
-        email: user.email,
-        nameOnCard: `${user.firstName} ${user.lastName}`
-      });
-    }
 
     effect(() => {
       const primary =

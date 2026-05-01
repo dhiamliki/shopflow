@@ -81,7 +81,7 @@ class ProductControllerTest {
     @Test
     void byIdShouldReturnOk() throws Exception {
         when(productService.getById(1L))
-                .thenReturn(new ProductResponse(1L, "Phone", "Desc", 100.0, null, 100.0, 5, 0L, List.of("Tech"), "Seller", List.of(), List.of(), 0.0, List.of()));
+                .thenReturn(new ProductResponse(1L, "Phone", "Desc", 100.0, null, 100.0, 5, 0L, List.of("Tech"), 2L, "Seller", List.of(), List.of(), 0.0, List.of()));
 
         mockMvc.perform(get("/api/products/1"))
                 .andExpect(status().isOk());
@@ -99,7 +99,7 @@ class ProductControllerTest {
     @WithMockUser(roles = "SELLER")
     void createShouldReturnOk() throws Exception {
         when(productService.createProduct(any()))
-                .thenReturn(new ProductResponse(1L, "Phone", "Desc", 100.0, null, 100.0, 5, 0L, List.of("Tech"), "Seller", List.of(), List.of(), 0.0, List.of()));
+                .thenReturn(new ProductResponse(1L, "Phone", "Desc", 100.0, null, 100.0, 5, 0L, List.of("Tech"), 2L, "Seller", List.of(), List.of(), 0.0, List.of()));
 
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)

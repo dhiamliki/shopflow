@@ -25,7 +25,6 @@ type TrackingOrderItem = OrderItem & { product: Product };
           <h1 class="font-display text-5xl font-semibold tracking-tight text-white">Track Order</h1>
           <p class="text-lg text-zinc-400">Stay updated on your order status.</p>
         </div>
-        <button type="button" class="button-secondary px-6">View Invoice</button>
       </div>
 
       <div class="panel-dark grid gap-4 p-6 lg:grid-cols-[1fr,1fr,120px] lg:items-center">
@@ -47,7 +46,7 @@ type TrackingOrderItem = OrderItem & { product: Product };
       </div>
 
       <div class="panel-dark p-6">
-        <div class="grid gap-6 md:grid-cols-5">
+        <div class="grid gap-6 md:grid-cols-4">
           @for (step of deliverySteps(); track step.label) {
             <div class="relative text-center">
               @if (!$last) {
@@ -122,7 +121,7 @@ type TrackingOrderItem = OrderItem & { product: Product };
               </div>
             }
           </div>
-          <a routerLink="/account/orders" class="button-secondary mt-6 w-full justify-center">View Order Details</a>
+          <a routerLink="/account/orders" class="button-secondary mt-6 w-full justify-center">Back to Orders</a>
         </app-panel-card>
 
         <div class="space-y-5">
@@ -131,14 +130,9 @@ type TrackingOrderItem = OrderItem & { product: Product };
           </app-panel-card>
 
           <app-panel-card title="More Actions">
-            <div class="space-y-3">
-              @for (action of moreActions; track action) {
-                <button type="button" class="flex w-full items-center justify-between rounded-md border border-white/8 bg-white/[0.03] px-4 py-3 text-left text-sm text-zinc-300 hover:text-white" (click)="handleAction(action)">
-                  <span>{{ action }}</span>
-                  <app-icon name="chevron-right" [size]="16" className="text-zinc-500" />
-                </button>
-              }
-            </div>
+            <button type="button" class="button-secondary w-full justify-center" (click)="buyAgain()">
+              Buy Again
+            </button>
           </app-panel-card>
         </div>
       </div>
@@ -183,8 +177,6 @@ export class OrderTrackingPageComponent {
     ),
     { initialValue: [] as TrackingOrderItem[] }
   );
-
-  readonly moreActions = ['Download Invoice', 'Buy Again'];
 
   private orderOrThrow() {
     const order = this.order();
@@ -247,16 +239,10 @@ export class OrderTrackingPageComponent {
         complete: index >= 2
       },
       {
-        label: 'Out for Delivery',
-        icon: 'map',
-        date: index >= 3 ? statusUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending',
-        complete: index >= 3
-      },
-      {
         label: 'Delivered',
         icon: 'circle-check',
-        date: index >= 4 ? statusUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending',
-        complete: index >= 4
+        date: index >= 3 ? statusUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Pending',
+        complete: index >= 3
       }
     ];
   });
@@ -286,28 +272,21 @@ export class OrderTrackingPageComponent {
       case 'SHIPPED':
         return 2;
       case 'DELIVERED':
-        return 4;
+        return 3;
       default:
         return 0;
     }
   }
 
-  handleAction(action: string): void {
-    if (action === 'Download Invoice') {
-      window.print();
-      return;
-    }
-
-    if (action === 'Buy Again') {
-      const order = this.order();
-      if (!order) return;
-      for (const item of order.items) {
-        this.cart.addItem({
-          productId: item.productId,
-          variantId: item.variantId,
-          quantity: item.quantity
-        }).subscribe();
-      }
+  buyAgain(): void {
+    const order = this.order();
+    if (!order) return;
+    for (const item of order.items) {
+      this.cart.addItem({
+        productId: item.productId,
+        variantId: item.variantId,
+        quantity: item.quantity
+      }).subscribe();
     }
   }
 }

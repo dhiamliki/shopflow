@@ -35,6 +35,11 @@ export const routes: Routes = [
         data: { navMode: 'shop' }
       },
       {
+        path: 'store/:sellerId',
+        loadComponent: () => import('./features/store/store.page').then((m) => m.StorePageComponent),
+        data: { navMode: 'shop' }
+      },
+      {
         path: 'cart',
         loadComponent: () => import('./features/cart/cart.page').then((m) => m.CartPageComponent),
         data: { navMode: 'shop' }
@@ -122,23 +127,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/order-tracking/order-tracking.page').then(
             (m) => m.OrderTrackingPageComponent
-          )
-      },
-      {
-        path: 'wishlist',
-        loadComponent: () =>
-          import('./features/wishlist/wishlist.page').then((m) => m.WishlistPageComponent)
-      },
-      {
-        path: 'notifications',
-        loadComponent: () =>
-          import('./features/notifications/notifications.page').then((m) => m.NotificationsPageComponent)
-      },
-      {
-        path: 'settings',
-        loadComponent: () =>
-          import('./features/account-settings/account-settings.page').then(
-            (m) => m.AccountSettingsPageComponent
           )
       }
     ]

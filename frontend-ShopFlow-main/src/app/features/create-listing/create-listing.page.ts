@@ -3,31 +3,10 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
-import { STORAGE_KEYS } from '../../core/config/api.config';
 import { CategoriesService } from '../../core/services/categories.service';
 import { CatalogService } from '../../core/services/catalog.service';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
-
-interface ListingDraftFormValue {
-  title: string;
-  categoryId: string;
-  brand: string;
-  model: string;
-  price: number;
-  compareAtPrice: number;
-  quantity: number;
-  allowOffers: boolean;
-  trackInventory: boolean;
-  showQuantity: boolean;
-  description: string;
-}
-
-interface ListingDraftPayload {
-  formValue: ListingDraftFormValue;
-  images: string[];
-}
 
 @Component({
   selector: 'app-create-listing-page',
@@ -41,7 +20,6 @@ interface ListingDraftPayload {
           <p class="text-lg text-zinc-400">Fill in the details below to list your product on ShopFlow.</p>
         </div>
         <div class="flex flex-wrap gap-3">
-          <button type="button" class="button-secondary px-6" (click)="saveDraft()">Save as Draft</button>
           <button type="button" class="button-primary px-6" (click)="publish()">Publish Listing</button>
         </div>
       </div>
@@ -51,7 +29,7 @@ interface ListingDraftPayload {
           <section class="space-y-5">
             <div>
               <h2 class="text-2xl font-semibold text-white">1. Product Images</h2>
-              <p class="mt-2 text-sm text-zinc-400">Add up to 10 images. The first image will be your cover photo.</p>
+              <p class="mt-2 text-sm text-zinc-400">Add up to 5 images. The first image will be your cover photo.</p>
             </div>
 
             <input #fileInput type="file" class="hidden" accept="image/*" multiple (change)="onFilesSelected($event)" />
@@ -108,10 +86,6 @@ interface ListingDraftPayload {
                     <option [value]="option.category.id">{{ categoryOptionLabel(option.depth, option.category.name) }}</option>
                   }
                 </select>
-                <input class="input-dark" formControlName="brand" placeholder="Brand" />
-              </div>
-              <div class="grid gap-4 md:grid-cols-2">
-                <input class="input-dark" formControlName="model" placeholder="Model" />
               </div>
             </div>
           </section>
@@ -126,18 +100,6 @@ interface ListingDraftPayload {
               <input class="input-dark" formControlName="compareAtPrice" type="number" placeholder="Compare at price" />
               <input class="input-dark" formControlName="quantity" type="number" placeholder="Quantity" />
             </div>
-
-            <div class="grid gap-4 md:grid-cols-3">
-              @for (toggle of toggles; track toggle.control) {
-                <label class="flex items-start gap-3 rounded-[22px] border border-white/8 bg-white/[0.03] p-4">
-                  <input type="checkbox" class="mt-1 h-5 w-5 accent-emerald-400" [formControlName]="toggle.control" />
-                  <span>
-                    <span class="block text-lg font-semibold text-white">{{ toggle.label }}</span>
-                    <span class="mt-1 block text-sm leading-6 text-zinc-400">{{ toggle.body }}</span>
-                  </span>
-                </label>
-              }
-            </div>
           </section>
 
           <section class="space-y-5 border-t border-white/8 pt-8">
@@ -145,13 +107,6 @@ interface ListingDraftPayload {
               <h2 class="text-2xl font-semibold text-white">4. Product Details</h2>
             </div>
             <div class="rounded-[24px] border border-white/8 bg-white/[0.03]">
-              <div class="flex flex-wrap items-center gap-3 border-b border-white/8 px-4 py-3">
-                @for (tool of toolbarTools; track tool) {
-                  <button type="button" class="rounded-xl border border-white/8 bg-black/30 px-3 py-2 text-sm text-zinc-300">
-                    {{ tool }}
-                  </button>
-                }
-              </div>
               <textarea class="textarea-dark border-0 bg-transparent" formControlName="description" placeholder="Write a detailed description about your product..."></textarea>
             </div>
           </section>
@@ -186,7 +141,6 @@ interface ListingDraftPayload {
               }
             </div>
             <p class="mt-2 text-sm text-emerald-300">In stock</p>
-            <p class="mt-3 text-sm text-zinc-400">Free shipping</p>
           </app-panel-card>
 
           <app-panel-card title="Tips for a great listing">
@@ -219,14 +173,9 @@ export class CreateListingPageComponent {
   readonly listingForm = this.fb.nonNullable.group({
     title: ['', Validators.required],
     categoryId: ['', Validators.required],
-    brand: [''],
-    model: [''],
     price: [0, Validators.required],
     compareAtPrice: [0],
     quantity: [1, Validators.required],
-    allowOffers: true,
-    trackInventory: false,
-    showQuantity: true,
     description: ['', Validators.required]
   });
 
@@ -237,25 +186,6 @@ export class CreateListingPageComponent {
   readonly previewPrice = computed(() => Number(this.listingForm.controls.price.value) || 0);
   readonly compareAtPrice = computed(() => Number(this.listingForm.controls.compareAtPrice.value) || 0);
 
-  readonly toggles = [
-    {
-      control: 'allowOffers',
-      label: 'Allow offers',
-      body: 'Buyers can make you an offer.'
-    },
-    {
-      control: 'trackInventory',
-      label: 'Track inventory',
-      body: 'Automatically update quantity.'
-    },
-    {
-      control: 'showQuantity',
-      label: 'Show quantity',
-      body: 'Show remaining stock to buyers.'
-    }
-  ] as const;
-
-  readonly toolbarTools = ['B', 'I', 'U', 'List', '1.', 'Link', 'Image'];
   readonly tips = [
     {
       title: 'Use high-quality photos',
@@ -276,8 +206,6 @@ export class CreateListingPageComponent {
   ];
 
   constructor() {
-    this.restoreDraft();
-
     effect(() => {
       const firstCategory = this.flatCategories()[0];
       if (!this.listingForm.controls.categoryId.value && firstCategory) {
@@ -288,7 +216,7 @@ export class CreateListingPageComponent {
 
   onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []).slice(0, 10 - this.uploadedImages().length);
+    const files = Array.from(input.files ?? []).slice(0, 5 - this.uploadedImages().length);
 
     for (const file of files) {
       const reader = new FileReader();
@@ -298,7 +226,7 @@ export class CreateListingPageComponent {
           return;
         }
 
-        this.uploadedImages.update((images) => [...images, result].slice(0, 10));
+        this.uploadedImages.update((images) => [...images, result].slice(0, 5));
       };
       reader.readAsDataURL(file);
     }
@@ -308,16 +236,6 @@ export class CreateListingPageComponent {
 
   removeImage(index: number): void {
     this.uploadedImages.update((images) => images.filter((_, currentIndex) => currentIndex !== index));
-  }
-
-  saveDraft(): void {
-    const payload: ListingDraftPayload = {
-      formValue: this.listingForm.getRawValue(),
-      images: this.uploadedImages()
-    };
-
-    localStorage.setItem(STORAGE_KEYS.sellerDraft, JSON.stringify(payload));
-    this.message.set('Draft saved on this device.');
   }
 
   publish(): void {
@@ -348,32 +266,16 @@ export class CreateListingPageComponent {
         })
       .subscribe({
         next: () => {
-          localStorage.removeItem(STORAGE_KEYS.sellerDraft);
           this.message.set('Listing published successfully.');
           void this.router.navigateByUrl('/seller/dashboard');
         },
         error: () => {
-          this.message.set('We could not publish this listing yet. Save it as a draft and try again.');
+          this.message.set('We could not publish this listing yet. Please check the listing details and try again.');
         }
       });
   }
 
   categoryOptionLabel(depth: number, name: string): string {
     return `${'-- '.repeat(depth)}${name}`;
-  }
-
-  private restoreDraft(): void {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEYS.sellerDraft);
-      if (!raw) {
-        return;
-      }
-
-      const draft = JSON.parse(raw) as ListingDraftPayload;
-      this.listingForm.patchValue(draft.formValue);
-      this.uploadedImages.set(draft.images);
-    } catch {
-      localStorage.removeItem(STORAGE_KEYS.sellerDraft);
-    }
   }
 }

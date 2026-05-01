@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, catchError, forkJoin, map, of, shareReplay } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { PageResponse, Product, ProductFilters, ProductPayload } from '../models/commerce.models';
+import { PageResponse, Product, ProductFilters, ProductPayload, SellerStore } from '../models/commerce.models';
 
 @Injectable({ providedIn: 'root' })
 export class CatalogService {
@@ -75,6 +75,12 @@ export class CatalogService {
     return this.http
       .get<Product[]>(`${API_BASE_URL}/api/products/top-selling`)
       .pipe(catchError(() => of([])));
+  }
+
+  getStore(sellerId: number): Observable<SellerStore | null> {
+    return this.http
+      .get<SellerStore>(`${API_BASE_URL}/api/stores/${sellerId}`)
+      .pipe(catchError(() => of(null)));
   }
 
   createProduct(payload: ProductPayload): Observable<Product> {

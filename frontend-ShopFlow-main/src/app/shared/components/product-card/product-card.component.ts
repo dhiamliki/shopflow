@@ -5,7 +5,6 @@ import { Router, RouterLink } from '@angular/router';
 import { Product } from '../../../core/models/commerce.models';
 import { CartService } from '../../../core/services/cart.service';
 import { SessionService } from '../../../core/services/session.service';
-import { WorkspaceService } from '../../../core/services/workspace.service';
 import { GlowSurfaceDirective } from '../../directives/glow-surface.directive';
 import { IconComponent } from '../icon.component';
 
@@ -19,16 +18,8 @@ import { IconComponent } from '../icon.component';
       class="panel-dark group relative flex h-full flex-col overflow-hidden p-3 transition-all duration-200 hover:border-white/20"
       [ngClass]="context() === 'compact' ? 'p-3' : ''"
     >
-      @if (context() === 'wishlist') {
-        <input
-          type="checkbox"
-          class="sf-check absolute left-5 top-5 z-10 h-4 w-4 rounded border-white/40 bg-transparent"
-        />
-      }
-
       <div
-        class="sf-product-media-well relative overflow-hidden rounded-md border border-white/8"
-        [ngClass]="context() === 'compact' ? 'aspect-[5/6]' : 'aspect-[4/5]'"
+        class="sf-product-media-well relative aspect-square overflow-hidden rounded-md border border-white/8"
       >
         <a [routerLink]="['/product', product().id]" class="block h-full w-full">
           @if (primaryImage()) {
@@ -44,24 +35,6 @@ import { IconComponent } from '../icon.component';
             </div>
           }
         </a>
-
-        @if (workspace.wishlistAvailable && showActions()) {
-          <button
-            type="button"
-            class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:bg-white/10"
-            (click)="toggleWishlist()"
-          >
-            <app-icon
-              name="heart"
-              [size]="17"
-              [className]="
-                wishlisted() || context() === 'wishlist'
-                  ? 'text-rose-500 fill-rose-500'
-                  : 'text-white'
-              "
-            />
-          </button>
-        }
 
         @if (product().promoPrice) {
           <span
@@ -99,38 +72,17 @@ import { IconComponent } from '../icon.component';
           <span class="text-xl font-semibold tracking-tight text-white">
             {{ product().effectivePrice | currency: 'USD' : 'symbol' : '1.2-2' }}
           </span>
-          @if (!showActions()) {
-            <button type="button" class="text-zinc-200 hover:text-white" (click)="toggleWishlist()">
-              <app-icon
-                name="heart"
-                [size]="20"
-                [className]="wishlisted() ? 'text-rose-500 fill-rose-500' : 'text-zinc-200'"
-              />
-            </button>
-          }
         </div>
 
         @if (showActions()) {
-          <div class="mt-5 flex items-center gap-4">
+          <div class="mt-5">
             <button
               type="button"
-              class="button-secondary min-h-10 flex-1 px-4 text-sm"
+              class="button-secondary min-h-10 w-full px-4 text-sm"
               (click)="addToCart()"
             >
               <app-icon name="shopping-cart" [size]="16" className="text-zinc-200" />
               Add to Cart
-            </button>
-            <button
-              type="button"
-              class="inline-flex min-h-10 items-center gap-2 text-sm text-zinc-300 hover:text-white"
-              (click)="removeIfWishlist()"
-            >
-              <app-icon
-                [name]="context() === 'wishlist' ? 'trash' : 'share'"
-                [size]="16"
-                className="text-zinc-300"
-              />
-              {{ context() === 'wishlist' ? 'Remove' : 'Share' }}
             </button>
           </div>
         }
@@ -142,18 +94,16 @@ export class ProductCardComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cartService = inject(CartService);
-  readonly workspace = inject(WorkspaceService);
   private readonly session = inject(SessionService);
 
   readonly product = input.required<Product>();
-  readonly context = input<'grid' | 'compact' | 'wishlist'>('grid');
+  readonly context = input<'grid' | 'compact'>('grid');
   readonly showSeller = input(true);
   readonly showCategory = input(true);
   readonly showActions = input(true);
 
   readonly primaryImage = computed(() => this.product().imageUrls[0] ?? '');
   readonly categoryLabel = computed(() => this.product().categories[0] ?? 'Featured');
-  readonly wishlisted = computed(() => this.workspace.isInWishlist(this.product().id));
 
   addToCart(): void {
     if (!this.session.isCustomer()) {
@@ -174,27 +124,5 @@ export class ProductCardComponent {
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
-  }
-
-  toggleWishlist(): void {
-    if (!this.session.isCustomer()) {
-      void this.router.navigate(['/login'], {
-        queryParams: {
-          redirect: this.router.url,
-        },
-      });
-      return;
-    }
-
-    this.workspace.toggleWishlist(this.product());
-  }
-
-  removeIfWishlist(): void {
-    if (this.context() === 'wishlist') {
-      this.workspace.removeWishlistItem(this.product().id);
-      return;
-    }
-
-    this.toggleWishlist();
   }
 }

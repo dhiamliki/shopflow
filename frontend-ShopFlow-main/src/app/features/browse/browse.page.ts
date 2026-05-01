@@ -23,17 +23,85 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
   ],
   template: `
     <section class="sf-page py-10" [formGroup]="filtersForm">
+      <!-- ── Page header ─────────────────────────────────── -->
+      <div
+        class="browse-header mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
+      >
+        <div>
+          <h1 class="text-4xl font-bold tracking-tight text-white lg:text-5xl">Browse Products</h1>
+          <p class="mt-2 text-base text-zinc-500">
+            Explore thousands of products from trusted sellers across every category.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center lg:shrink-0">
+          <!-- Search -->
+          <div
+            class="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-md border border-white/10 bg-white/[0.03] px-3.5 sm:w-72"
+          >
+            <app-icon name="search" [size]="17" className="text-zinc-500" />
+            <input
+              formControlName="search"
+              type="text"
+              placeholder="Search products, brands or categories..."
+              class="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-500"
+            />
+          </div>
+
+          <!-- Sort -->
+          <label
+            class="flex min-h-11 items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-3 text-sm text-zinc-400"
+          >
+            <span class="shrink-0">Sort by:</span>
+            <select
+              class="select-dark select-compact flex-1 border-0 bg-transparent px-0 text-white"
+              formControlName="sortBy"
+            >
+              <option value="newest">Newest</option>
+              <option value="popularity">Most Popular</option>
+              <option value="price">Price</option>
+            </select>
+          </label>
+
+          <!-- View toggle -->
+          <div
+            class="flex min-h-11 items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-1.5"
+          >
+            <button
+              type="button"
+              class="icon-button h-8 w-8"
+              [ngClass]="
+                viewMode() === 'grid' ? 'border-white/18 bg-white/10' : 'border-transparent'
+              "
+              (click)="viewMode.set('grid')"
+            >
+              <app-icon name="grid" [size]="17" className="text-zinc-200" />
+            </button>
+            <button
+              type="button"
+              class="icon-button h-8 w-8"
+              [ngClass]="
+                viewMode() === 'compact' ? 'border-white/18 bg-white/10' : 'border-transparent'
+              "
+              (click)="viewMode.set('compact')"
+            >
+              <app-icon name="list" [size]="17" className="text-zinc-200" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Main layout ─────────────────────────────────── -->
       <div class="browse-layout">
         <aside class="browse-sidebar hidden lg:block" aria-label="Product filters">
           <div class="panel-dark browse-sidebar__panel flex flex-col overflow-hidden p-0">
-            <div class="border-b border-white/8 px-4 py-3">
+            <div class="border-b border-white/8 px-4 py-3.5">
               <div class="flex items-center justify-between gap-3">
                 <div class="min-w-0">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                    Refine results
-                  </p>
-                  <h2 class="text-base font-semibold text-white">Filters</h2>
-                  <p class="mt-1 line-clamp-1 text-xs text-zinc-500">
+                  <h2 class="text-sm font-semibold uppercase tracking-widest text-zinc-500">
+                    Filters
+                  </h2>
+                  <p class="mt-1 line-clamp-1 text-xs text-zinc-600">
                     {{ selectedCategorySummary() }}
                   </p>
                 </div>
@@ -42,23 +110,24 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   class="shrink-0 text-xs font-medium text-zinc-400 hover:text-white"
                   (click)="clearFilters()"
                 >
-                  Clear
+                  Clear all
                 </button>
               </div>
             </div>
 
-            <div
-              class="browse-sidebar__body min-h-0 flex-1 space-y-4 overflow-y-auto px-3.5 py-3.5"
-            >
-              <section class="space-y-2.5">
-                <div class="flex items-center justify-between px-1">
-                  <h3 class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+            <div class="browse-sidebar__body min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
+              <!-- Categories -->
+              <section class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
                     Categories
                   </h3>
                   @if (selectedCategoryIds().length) {
-                    <span class="text-xs font-semibold text-zinc-300">{{
-                      selectedCategoryIds().length
-                    }}</span>
+                    <span
+                      class="rounded-full bg-white/8 px-2 py-0.5 text-[10px] font-bold text-zinc-300"
+                    >
+                      {{ selectedCategoryIds().length }}
+                    </span>
                   }
                 </div>
 
@@ -107,10 +176,11 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 
               <div class="border-t border-white/8"></div>
 
+              <!-- Price range -->
               <section class="space-y-3">
                 <div class="flex items-center justify-between">
-                  <h3 class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                    Price
+                  <h3 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                    Price Range
                   </h3>
                   <span class="text-xs font-medium text-zinc-300"
                     >&#36;{{ filtersForm.controls.maxPrice.value }}</span
@@ -123,7 +193,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   min="1"
                   max="900"
                 />
-                <div class="flex justify-between text-xs text-zinc-500">
+                <div class="flex justify-between text-xs text-zinc-600">
                   <span>$0</span>
                   <span>$900+</span>
                 </div>
@@ -131,8 +201,9 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 
               <div class="border-t border-white/8"></div>
 
+              <!-- Promotions -->
               <label
-                class="flex min-h-9 items-center justify-between gap-3 rounded-md border border-white/8 bg-white/[0.02] px-3 text-sm text-zinc-300"
+                class="flex min-h-9 cursor-pointer items-center justify-between gap-3 rounded-md border border-white/8 bg-white/[0.02] px-3 text-sm text-zinc-300 hover:border-white/14 hover:text-white transition"
               >
                 <span>Promotions only</span>
                 <input type="checkbox" class="sf-check h-4 w-4" formControlName="promo" />
@@ -142,83 +213,29 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
         </aside>
 
         <section class="min-w-0 space-y-5">
-          <div
-            class="panel-dark flex flex-col gap-3 p-3 xl:flex-row xl:items-center xl:justify-between"
-          >
-            <div
-              class="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-md border border-white/8 bg-black/20 px-3.5"
+          <!-- Results meta bar -->
+          <div class="flex flex-wrap items-center gap-2">
+            <span
+              class="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-400"
             >
-              <app-icon name="search" [size]="18" className="text-zinc-500" />
-              <input
-                formControlName="search"
-                type="text"
-                placeholder="Search products, brands or categories..."
-                class="w-full bg-transparent text-sm text-white outline-none placeholder:text-zinc-500"
-              />
-            </div>
-
-            <div class="flex flex-col gap-3 xl:ml-4 xl:min-w-fit">
-              <div class="flex flex-wrap items-center gap-2 text-sm text-zinc-400">
-                <span
-                  class="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-300"
-                >
-                  {{ productPage().totalElements }} items
-                </span>
-                @if (selectedCategoryIds().length) {
-                  <span
-                    class="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-300"
-                  >
-                    {{ selectedCategorySummary() }}
-                  </span>
-                }
-              </div>
-
-              <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <label
-                  class="flex min-h-11 min-w-[190px] items-center gap-2 rounded-md border border-white/8 bg-black/20 px-3 text-sm text-zinc-300"
-                >
-                  <span>Sort by:</span>
-                  <select
-                    class="select-dark select-compact flex-1 border-0 bg-transparent px-0"
-                    formControlName="sortBy"
-                  >
-                    <option value="newest">Newest</option>
-                    <option value="popularity">Most Popular</option>
-                    <option value="price">Price</option>
-                  </select>
-                </label>
-
-                <div
-                  class="flex min-h-11 items-center gap-2 rounded-md border border-white/8 bg-black/20 px-1.5"
-                >
-                  <button
-                    type="button"
-                    class="icon-button h-9 w-9"
-                    [ngClass]="viewMode() === 'grid' ? 'border-white/18 bg-white/10' : ''"
-                    (click)="viewMode.set('grid')"
-                  >
-                    <app-icon name="grid" [size]="18" className="text-zinc-200" />
-                  </button>
-                  <button
-                    type="button"
-                    class="icon-button h-9 w-9"
-                    [ngClass]="viewMode() === 'compact' ? 'border-white/18 bg-white/10' : ''"
-                    (click)="viewMode.set('compact')"
-                  >
-                    <app-icon name="list" [size]="18" className="text-zinc-200" />
-                  </button>
-                </div>
-              </div>
-            </div>
+              {{ productPage().totalElements }} items
+            </span>
+            @if (selectedCategoryIds().length) {
+              <span
+                class="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-zinc-400"
+              >
+                {{ selectedCategorySummary() }}
+              </span>
+            }
           </div>
 
           @if (productPage().content.length) {
             <div
-              class="grid gap-5"
+              class="grid gap-4"
               [ngClass]="
                 viewMode() === 'grid'
-                  ? 'sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'
-                  : 'sm:grid-cols-2 2xl:grid-cols-3'
+                  ? 'sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5'
+                  : 'sm:grid-cols-2 xl:grid-cols-3'
               "
             >
               @for (product of productPage().content; track product.id) {
@@ -232,13 +249,13 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-4 pt-3">
-              <p class="text-sm text-zinc-400">
+              <p class="text-sm text-zinc-500">
                 Showing
-                <span class="text-white">{{ startItem() }}</span>
-                to
-                <span class="text-white">{{ endItem() }}</span>
+                <span class="text-zinc-200">{{ startItem() }}</span>
+                –
+                <span class="text-zinc-200">{{ endItem() }}</span>
                 of
-                <span class="text-white">{{ productPage().totalElements }}</span>
+                <span class="text-zinc-200">{{ productPage().totalElements }}</span>
                 products
               </p>
 
@@ -255,11 +272,11 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                 @for (pageIndex of pages(); track pageIndex) {
                   <button
                     type="button"
-                    class="h-11 min-w-11 rounded-md border px-4 text-sm font-semibold transition"
+                    class="h-10 min-w-10 rounded-md border px-3.5 text-sm font-semibold transition"
                     [ngClass]="
                       pageIndex === page()
-                        ? 'border-emerald-400/25 bg-emerald-500/14 text-white'
-                        : 'border-white/8 bg-white/[0.02] text-zinc-300 hover:border-white/14 hover:bg-white/[0.04]'
+                        ? 'border-white/20 bg-white/10 text-white'
+                        : 'border-white/8 bg-white/[0.02] text-zinc-400 hover:border-white/14 hover:bg-white/[0.04] hover:text-white'
                     "
                     (click)="setPage(pageIndex)"
                   >
@@ -345,6 +362,7 @@ export class BrowsePageComponent {
 
   readonly page = signal(0);
   readonly viewMode = signal<'grid' | 'compact'>('grid');
+  private readonly sellerId = Number(this.route.snapshot.queryParamMap.get('sellerId') ?? 0) || null;
 
   readonly filtersForm = this.fb.nonNullable.group({
     search: this.route.snapshot.queryParamMap.get('q') ?? '',
@@ -406,6 +424,7 @@ export class BrowsePageComponent {
           search: filters.search,
           categoryIds: filters.categoryIds?.length ? filters.categoryIds : null,
           promo: filters.promo,
+          sellerId: this.sellerId,
           minPrice: filters.minPrice || null,
           maxPrice: filters.maxPrice ? Math.max(filters.maxPrice, 1) : null,
           sortBy: filters.sortBy,

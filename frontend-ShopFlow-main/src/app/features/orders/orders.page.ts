@@ -8,7 +8,6 @@ import { CatalogService } from '../../core/services/catalog.service';
 import { CartService } from '../../core/services/cart.service';
 import { OrdersService } from '../../core/services/orders.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
 import { SectionHeadingComponent } from '../../shared/components/section-heading/section-heading.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
@@ -22,7 +21,6 @@ type OrderCard = Order & { leadProduct: Product | null };
     CommonModule,
     CurrencyPipe,
     RouterLink,
-    IconComponent,
     PanelCardComponent,
     SectionHeadingComponent,
     StatusBadgeComponent,
@@ -30,7 +28,7 @@ type OrderCard = Order & { leadProduct: Product | null };
   ],
   template: `
     <div class="space-y-6">
-      <app-section-heading title="My Orders" subtitle="Track, return, or buy again." />
+      <app-section-heading title="My Orders" subtitle="Track and manage your orders." />
       <div class="grid gap-6 xl:grid-cols-[1fr,330px]">
         <section class="space-y-5">
           <div class="flex flex-wrap gap-6 border-b border-white/8">
@@ -132,20 +130,6 @@ type OrderCard = Order & { leadProduct: Product | null };
             </div>
             <a routerLink="/account/orders" class="button-primary mt-6 w-full justify-center">View All Orders</a>
           </app-panel-card>
-
-          <app-panel-card title="Shop With Confidence">
-            <div class="space-y-4">
-              @for (trust of trustItems; track trust.title) {
-                <div class="flex items-start gap-4">
-                  <app-icon [name]="trust.icon" [size]="18" className="mt-1 text-zinc-200" />
-                  <div>
-                    <p class="text-lg font-semibold text-white">{{ trust.title }}</p>
-                    <p class="mt-2 text-sm leading-6 text-zinc-400">{{ trust.body }}</p>
-                  </div>
-                </div>
-              }
-            </div>
-          </app-panel-card>
         </aside>
       </div>
     </div>
@@ -180,29 +164,17 @@ export class OrdersPageComponent {
 
   readonly tabs = [
     { label: 'All Orders', value: 'ALL' as const },
-    { label: 'To Pay', value: 'PENDING' as const },
+    { label: 'Pending', value: 'PENDING' as const },
     { label: 'Processing', value: 'PROCESSING' as const },
     { label: 'Shipped', value: 'SHIPPED' as const },
     { label: 'Delivered', value: 'DELIVERED' as const },
     { label: 'Cancelled', value: 'CANCELLED' as const }
   ];
   readonly progressSteps = ['Placed', 'Processing', 'Shipped', 'Delivered'];
-  readonly trustItems = [
-    {
-      icon: 'shield-check',
-      title: 'Secure Payments',
-      body: 'Your payment information is always protected.'
-    },
-    {
-      icon: 'shield',
-      title: 'Buyer Protection',
-      body: 'Order status and payment records stay attached to every purchase.'
-    }
-  ];
 
   readonly summaryRows = computed(() => [
     { label: 'Total Orders', value: this.orders().length },
-    { label: 'To Pay', value: this.orders().filter((order) => order.status === 'PENDING').length },
+    { label: 'Pending', value: this.orders().filter((order) => order.status === 'PENDING').length },
     { label: 'Processing', value: this.orders().filter((order) => order.status === 'PROCESSING').length },
     { label: 'Shipped', value: this.orders().filter((order) => order.status === 'SHIPPED').length },
     { label: 'Delivered', value: this.orders().filter((order) => order.status === 'DELIVERED').length },

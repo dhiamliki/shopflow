@@ -33,7 +33,7 @@ type EnrichedOrderItem = OrderItem & { product: Product };
                   Your order has been placed successfully.
                 </p>
                 <p class="text-lg text-zinc-400">
-                  We have sent an order confirmation to {{ session.user()?.email || 'your email address' }}.
+                  You can track the order from your account orders.
                 </p>
               </div>
             </div>
@@ -71,16 +71,8 @@ type EnrichedOrderItem = OrderItem & { product: Product };
             </div>
 
             <div class="space-y-5">
-              <div class="flex items-center justify-between">
+              <div>
                 <h2 class="text-xl font-semibold text-white">You might also like</h2>
-                <div class="flex gap-2">
-                  <button type="button" class="icon-button">
-                    <app-icon name="chevron-left" [size]="18" className="text-zinc-200" />
-                  </button>
-                  <button type="button" class="icon-button">
-                    <app-icon name="chevron-right" [size]="18" className="text-zinc-200" />
-                  </button>
-                </div>
               </div>
 
               <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -132,7 +124,7 @@ type EnrichedOrderItem = OrderItem & { product: Product };
               <div class="my-6 border-t border-white/8"></div>
 
               <div class="flex items-center justify-between">
-                <span class="text-2xl font-semibold text-white">Total Paid</span>
+                <span class="text-2xl font-semibold text-white">Total</span>
                 <span class="text-4xl font-semibold tracking-tight text-white">
                   {{ o.totalAmount | currency: 'USD' : 'symbol' : '1.2-2' }}
                 </span>
@@ -220,7 +212,7 @@ export class OrderSuccessPageComponent {
     {
       icon: 'circle-check',
       title: 'Order Confirmed',
-      body: 'We have received your order and payment.',
+      body: 'We have received your order.',
       complete: true
     },
     {

@@ -2,7 +2,6 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavSection } from '../../core/models/ui.models';
 import { SessionService } from '../../core/services/session.service';
-import { WorkspaceService } from '../../core/services/workspace.service';
 import { SidebarNavComponent } from '../../shared/components/sidebar-nav/sidebar-nav.component';
 import { TopNavComponent } from '../../shared/components/top-nav/top-nav.component';
 
@@ -30,29 +29,13 @@ import { TopNavComponent } from '../../shared/components/top-nav/top-nav.compone
 })
 export class AccountShellComponent {
   private readonly session = inject(SessionService);
-  private readonly workspace = inject(WorkspaceService);
 
   readonly sections = computed<NavSection[]>(() => {
     const accountSection: NavSection = {
       label: 'My Account',
       items: [
         { label: 'Dashboard', route: '/account/dashboard', icon: 'dashboard' },
-        { label: 'Orders', route: '/account/orders', icon: 'package' },
-        {
-          label: 'Wishlist',
-          route: '/account/wishlist',
-          icon: 'heart',
-          badge: this.workspace.wishlist().length || null
-        },
-        {
-          label: 'Notifications',
-          route: '/account/notifications',
-          icon: 'bell',
-          badge: this.workspace.unreadNotificationCount() || null
-        },
-        { label: 'Addresses', route: '/account/settings', icon: 'map' },
-        { label: 'Payment Methods', route: '/account/settings', icon: 'card' },
-        { label: 'Account Settings', route: '/account/settings', icon: 'settings' }
+        { label: 'Orders', route: '/account/orders', icon: 'package' }
       ]
     };
 
@@ -61,11 +44,7 @@ export class AccountShellComponent {
           label: 'Seller',
           items: [
             { label: 'Seller Dashboard', route: '/seller/dashboard', icon: 'store' },
-            { label: 'Create Listing', route: '/seller/create-listing', icon: 'plus' },
-            { label: 'My Listings', route: '/seller/dashboard', icon: 'dashboard' },
-            { label: 'Orders', route: '/seller/dashboard', icon: 'package' },
-            { label: 'Payouts', route: '/seller/dashboard', icon: 'circle-dollar' },
-            { label: 'Analytics', route: '/seller/dashboard', icon: 'analytics' }
+            { label: 'Create Listing', route: '/seller/create-listing', icon: 'plus' }
           ]
         }
       : {

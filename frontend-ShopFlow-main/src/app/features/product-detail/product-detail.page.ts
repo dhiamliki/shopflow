@@ -6,7 +6,6 @@ import { map, switchMap, of } from 'rxjs';
 import { CatalogService } from '../../core/services/catalog.service';
 import { CartService } from '../../core/services/cart.service';
 import { SessionService } from '../../core/services/session.service';
-import { WorkspaceService } from '../../core/services/workspace.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon.component';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
@@ -26,8 +25,8 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
   ],
   template: `
     @if (product(); as p) {
-      <section class="sf-page py-8">
-        <nav class="mb-7 flex flex-wrap items-center gap-3 text-sm text-zinc-500">
+      <section class="sf-page py-12">
+        <nav class="mb-10 flex flex-wrap items-center gap-3 text-sm text-zinc-500">
           @for (crumb of breadcrumbs(); track crumb.label) {
             @if (crumb.route) {
               <a [routerLink]="crumb.route" class="hover:text-white">{{ crumb.label }}</a>
@@ -40,27 +39,56 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
           }
         </nav>
 
-        <div
-          class="grid gap-7 xl:grid-cols-[minmax(0,720px),minmax(340px,1fr),300px] xl:items-start 2xl:grid-cols-[minmax(0,760px),minmax(380px,1fr),340px]"
-        >
-          <section class="min-w-0">
-            <div class="grid gap-4 md:grid-cols-[88px,minmax(0,1fr)] md:items-start">
+        <div class="product-detail-grid">
+          <section class="min-w-0 space-y-6">
+            <!-- Main image -->
+            <div class="panel-dark overflow-hidden p-3 sm:p-4">
               <div
-                class="product-detail__thumbs order-2 flex gap-3 overflow-x-auto pb-1 md:order-1 md:max-h-[700px] md:flex-col md:overflow-y-auto md:pb-0 md:pr-1"
+                class="sf-product-gallery-stage relative aspect-square w-full overflow-hidden rounded-md border border-white/8"
               >
+                @if (selectedImage()) {
+                  <img class="sf-product-detail-image" [src]="selectedImage()" [alt]="p.name" />
+                } @else {
+                  <div class="flex h-full items-center justify-center">
+                    <app-icon name="bag" [size]="36" className="text-zinc-500" />
+                  </div>
+                }
+
+                @if (galleryImages().length > 1) {
+                  <button
+                    type="button"
+                    class="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 backdrop-blur-sm transition hover:bg-black/80"
+                    (click)="stepImage(-1)"
+                  >
+                    <app-icon name="chevron-left" [size]="17" className="text-white" />
+                  </button>
+                  <button
+                    type="button"
+                    class="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/60 backdrop-blur-sm transition hover:bg-black/80"
+                    (click)="stepImage(1)"
+                  >
+                    <app-icon name="chevron-right" [size]="17" className="text-white" />
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Horizontal thumbnail strip -->
+            @if (galleryImages().length > 1) {
+              <div class="product-detail__thumbs flex gap-4 overflow-x-auto pb-1">
                 @for (image of galleryImages(); track image; let imageIndex = $index) {
                   <button
                     type="button"
-                    class="h-20 w-20 shrink-0 overflow-hidden rounded-md border bg-zinc-950/80 transition md:h-[88px] md:w-[88px]"
+                    class="h-[92px] w-[92px] shrink-0 overflow-hidden rounded-md border bg-[#f6f4ef] transition"
                     [ngClass]="
                       selectedImageIndex() === imageIndex
                         ? 'border-white/30 ring-1 ring-white/15'
-                        : 'border-white/8 hover:border-white/14'
+                        : 'border-white/8 hover:border-white/20'
                     "
                     (click)="selectedImageIndex.set(imageIndex)"
                   >
                     <img
-                      class="sf-product-thumb-image h-full w-full"
+                      class="sf-product-thumb-image"
                       [src]="image"
                       [alt]="p.name"
                       loading="lazy"
@@ -68,60 +96,25 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   </button>
                 }
               </div>
-
-              <div class="panel-dark order-1 overflow-hidden p-2 sm:p-3 md:order-2">
-                <div
-                  class="sf-product-gallery-stage relative h-[440px] overflow-hidden rounded-md border border-white/8 sm:h-[520px] lg:h-[620px] xl:h-[700px]"
-                >
-                  @if (selectedImage()) {
-                    <img
-                      class="sf-product-detail-image h-full w-full"
-                      [src]="selectedImage()"
-                      [alt]="p.name"
-                    />
-                  } @else {
-                    <div class="flex h-full items-center justify-center">
-                      <app-icon name="bag" [size]="36" className="text-zinc-500" />
-                    </div>
-                  }
-
-                  @if (galleryImages().length > 1) {
-                    <button
-                      type="button"
-                      class="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 transition hover:bg-black/70"
-                      (click)="stepImage(-1)"
-                    >
-                      <app-icon name="chevron-left" [size]="18" className="text-white" />
-                    </button>
-                    <button
-                      type="button"
-                      class="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/50 transition hover:bg-black/70"
-                      (click)="stepImage(1)"
-                    >
-                      <app-icon name="chevron-right" [size]="18" className="text-white" />
-                    </button>
-                  }
-                </div>
-              </div>
-            </div>
+            }
           </section>
 
-          <section class="space-y-6 xl:pl-2">
-            <div class="space-y-4">
+          <section class="product-detail-copy space-y-10 lg:pt-2">
+            <div class="space-y-7">
               <span
                 class="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-zinc-300"
               >
                 {{ p.categories[0] || 'Featured' }}
               </span>
 
-              <div class="space-y-4">
+              <div class="space-y-6">
                 <h1
-                  class="font-display text-4xl font-semibold tracking-tight text-white xl:text-5xl"
+                  class="font-display text-4xl font-semibold leading-tight tracking-tight text-white xl:text-5xl"
                 >
                   {{ p.name }}
                 </h1>
 
-                <div class="flex flex-wrap items-center gap-4 text-sm text-zinc-400">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-400">
                   <div class="flex items-center gap-2 text-white">
                     <span class="flex items-center gap-1 text-amber-300">
                       @for (star of ratingStars; track star) {
@@ -135,8 +128,8 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   <span>{{ soldCount() }} sold</span>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-4">
-                  <p class="text-4xl font-semibold tracking-tight text-white xl:text-5xl">
+                <div class="flex flex-wrap items-end gap-x-4 gap-y-2">
+                  <p class="text-4xl font-semibold leading-none tracking-tight text-white xl:text-5xl">
                     {{ p.effectivePrice | currency: 'USD' : 'symbol' : '1.0-0' }}
                   </p>
                   @if (p.promoPrice) {
@@ -149,14 +142,14 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   }
                 </div>
 
-                <div class="flex items-center gap-3 text-base">
+                <div class="flex flex-wrap items-center gap-3 pt-1 text-base">
                   <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
                   <span class="text-emerald-300">In stock</span>
                   <span class="text-zinc-500">|</span>
-                  <span class="text-zinc-400">Free shipping</span>
+                  <span class="text-zinc-400">{{ p.stock }} units available</span>
                 </div>
 
-                <p class="max-w-2xl text-lg leading-8 text-zinc-400">
+                <p class="max-w-2xl text-lg leading-8 text-zinc-400 lg:max-w-none">
                   {{ p.description }}
                 </p>
               </div>
@@ -164,15 +157,16 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 
             <button
               type="button"
-              class="inline-flex items-center gap-2 text-base font-semibold text-white hover:text-zinc-300"
+              class="inline-flex items-center gap-2 pt-1 text-base font-semibold text-white hover:text-zinc-300"
+              (click)="activeTab.set('specifications')"
             >
               View full specifications
               <app-icon name="arrow-right" [size]="18" className="text-white" />
             </button>
           </section>
 
-          <aside class="space-y-4 xl:sticky xl:top-28">
-            <div class="panel-dark p-5">
+          <aside class="product-detail-aside space-y-5">
+            <div class="panel-dark p-7">
               <div class="flex items-start justify-between gap-4">
                 <div>
                   <p class="text-sm text-zinc-500">Sold by</p>
@@ -188,13 +182,13 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                     </div>
                   </div>
                 </div>
-                <button type="button" class="button-secondary min-h-10 px-4 text-sm">
+                <a [routerLink]="['/store', p.sellerId]" class="button-secondary min-h-10 px-4 text-sm">
                   View Store
-                </button>
+                </a>
               </div>
 
-              <div class="mt-5 border-t border-white/8 pt-5">
-                <div class="space-y-4 text-sm">
+              <div class="mt-7 border-t border-white/8 pt-7">
+                <div class="space-y-6 text-sm">
                   <div class="flex items-center justify-between">
                     <span class="text-zinc-400">Price</span>
                     <span class="text-3xl font-semibold tracking-tight text-white">
@@ -202,18 +196,12 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                     </span>
                   </div>
                   <div class="flex items-center justify-between">
-                    <span class="text-zinc-400">Shipping</span>
-                    <span class="text-emerald-300">Free</span>
-                  </div>
-                  <div class="flex items-center justify-between gap-4">
-                    <span class="text-zinc-400">Delivery</span>
-                    <span class="text-right text-zinc-200"
-                      >Est. delivery {{ estimatedDelivery() }}</span
-                    >
+                    <span class="text-zinc-400">Available stock</span>
+                    <span class="text-zinc-200">{{ p.stock }} units</span>
                   </div>
                 </div>
 
-                <div class="mt-5 space-y-3">
+                <div class="mt-7 space-y-3.5">
                   <button type="button" class="button-primary w-full" (click)="addToCart()">
                     <app-icon name="bag" [size]="18" className="text-black" />
                     Add to Cart
@@ -223,52 +211,15 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   </button>
                 </div>
 
-                <div
-                  class="mt-5 flex items-center justify-between border-y border-white/8 py-4 text-sm"
-                >
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-2 text-zinc-300 hover:text-white"
-                    (click)="toggleWishlist()"
-                  >
-                    <app-icon
-                      name="heart"
-                      [size]="17"
-                      [className]="wishlisted() ? 'text-rose-400' : 'text-zinc-300'"
-                    />
-                    Add to Wishlist
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-2 text-zinc-300 hover:text-white"
-                  >
-                    <app-icon name="share" [size]="17" className="text-zinc-300" />
-                    Share
-                  </button>
-                </div>
-
-                <div class="mt-5 space-y-4">
-                  <h3 class="text-lg font-semibold text-white">Shop with confidence</h3>
-                  @for (trust of trustPoints; track trust.title) {
-                    <div class="flex items-start gap-3">
-                      <span
-                        class="mt-1 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]"
-                      >
-                        <app-icon [name]="trust.icon" [size]="16" className="text-zinc-200" />
-                      </span>
-                      <div>
-                        <p class="text-sm font-semibold text-white">{{ trust.title }}</p>
-                        <p class="text-sm leading-6 text-zinc-400">{{ trust.body }}</p>
-                      </div>
-                    </div>
-                  }
+                <div class="mt-7 rounded-md border border-white/8 bg-white/[0.03] p-4 text-sm leading-6 text-zinc-400">
+                  Cart totals and shipping are calculated by the backend during checkout.
                 </div>
               </div>
             </div>
           </aside>
         </div>
 
-        <div class="mt-12 grid gap-10 xl:grid-cols-[1.1fr,0.95fr]">
+        <div class="mt-16 grid gap-12 xl:grid-cols-[1.08fr,0.92fr]">
           <section class="space-y-8">
             <div class="flex flex-wrap gap-8 border-b border-white/8">
               @for (tab of tabs; track tab) {
@@ -335,31 +286,13 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   }
                 </div>
               }
-              @case ('shipping') {
-                <div class="grid gap-4 md:grid-cols-3">
-                  @for (policy of trustPoints; track policy.title) {
-                    <div class="panel-dark p-5">
-                      <app-icon [name]="policy.icon" [size]="20" className="text-zinc-100" />
-                      <p class="mt-4 text-lg font-semibold text-white">{{ policy.title }}</p>
-                      <p class="mt-2 text-sm leading-6 text-zinc-400">{{ policy.body }}</p>
-                    </div>
-                  }
-                </div>
-              }
             }
           </section>
 
           <aside class="space-y-5">
-            <div class="flex items-center justify-between">
+            <div>
               <h2 class="text-3xl font-semibold text-white">You may also like</h2>
-              <div class="flex gap-2">
-                <button type="button" class="icon-button">
-                  <app-icon name="chevron-left" [size]="18" className="text-zinc-200" />
-                </button>
-                <button type="button" class="icon-button">
-                  <app-icon name="chevron-right" [size]="18" className="text-zinc-200" />
-                </button>
-              </div>
+              <p class="mt-2 text-sm text-zinc-400">Top-selling products from the marketplace.</p>
             </div>
 
             <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -387,6 +320,37 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
   `,
   styles: [
     `
+      .product-detail-grid {
+        display: grid;
+        gap: 2.75rem;
+      }
+
+      @media (min-width: 1024px) {
+        .product-detail-grid {
+          grid-template-columns: minmax(280px, 1.05fr) minmax(250px, 0.82fr) minmax(250px, 320px);
+          align-items: start;
+          gap: 3rem;
+        }
+
+        .product-detail-aside {
+          position: sticky;
+          top: 7rem;
+        }
+      }
+
+      @media (min-width: 1280px) {
+        .product-detail-grid {
+          grid-template-columns: minmax(430px, 1.05fr) minmax(360px, 0.82fr) minmax(330px, 390px);
+          gap: 3.25rem;
+        }
+      }
+
+      @media (min-width: 1536px) {
+        .product-detail-grid {
+          gap: 3.75rem;
+        }
+      }
+
       .product-detail__thumbs {
         scrollbar-width: thin;
         scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
@@ -414,10 +378,9 @@ export class ProductDetailPageComponent {
   private readonly catalog = inject(CatalogService);
   private readonly cartService = inject(CartService);
   private readonly session = inject(SessionService);
-  private readonly workspace = inject(WorkspaceService);
 
   readonly selectedImageIndex = signal(0);
-  readonly activeTab = signal<'description' | 'specifications' | 'reviews' | 'shipping'>(
+  readonly activeTab = signal<'description' | 'specifications' | 'reviews'>(
     'description',
   );
 
@@ -450,12 +413,9 @@ export class ProductDetailPageComponent {
     const images = this.galleryImages();
     return images[this.selectedImageIndex()] ?? images[0] ?? '';
   });
-  readonly galleryImages = computed(() =>
-    this.product()?.imageUrls?.length ? this.product()!.imageUrls : [],
-  );
-  readonly wishlisted = computed(() => {
-    const product = this.product();
-    return product ? this.workspace.isInWishlist(product.id) : false;
+  readonly galleryImages = computed(() => {
+    const imageUrls = this.product()?.imageUrls ?? [];
+    return Array.from(new Set(imageUrls.filter(Boolean)));
   });
   readonly reviewCount = computed(() => {
     const p = this.product();
@@ -464,13 +424,6 @@ export class ProductDetailPageComponent {
   readonly soldCount = computed(() => {
     const p = this.product();
     return p ? p.salesCount : 0;
-  });
-  readonly estimatedDelivery = computed(() => {
-    const start = new Date();
-    const end = new Date();
-    start.setDate(start.getDate() + 2);
-    end.setDate(end.getDate() + 4);
-    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   });
   readonly discountLabel = computed(() => {
     const p = this.product();
@@ -490,19 +443,7 @@ export class ProductDetailPageComponent {
   readonly reviewsToShow = computed(() => this.product()?.reviews ?? []);
 
   readonly ratingStars = [1, 2, 3, 4, 5];
-  readonly tabs = ['description', 'specifications', 'reviews', 'shipping'] as const;
-  readonly trustPoints = [
-    {
-      icon: 'shield-check',
-      title: 'Secure Payments',
-      body: 'Your payment information is safe and encrypted.',
-    },
-    {
-      icon: 'arrow-left',
-      title: '30-Day Returns',
-      body: 'Easy returns on eligible items if it is not the right fit.',
-    },
-  ];
+  readonly tabs = ['description', 'specifications', 'reviews'] as const;
   readonly specificationRows = computed(() => {
     const p = this.product();
     if (!p) return [];
@@ -535,9 +476,8 @@ export class ProductDetailPageComponent {
 
   addToCart(): void {
     if (!this.session.isCustomer()) {
-      void this.router.navigate(['/auth'], {
+      void this.router.navigate(['/login'], {
         queryParams: {
-          mode: 'login',
           redirect: this.router.url,
         },
       });
@@ -563,23 +503,7 @@ export class ProductDetailPageComponent {
     }
   }
 
-  toggleWishlist(): void {
-    if (!this.session.isCustomer()) {
-      void this.router.navigate(['/login'], {
-        queryParams: {
-          redirect: this.router.url,
-        },
-      });
-      return;
-    }
-
-    const p = this.product();
-    if (p) {
-      this.workspace.toggleWishlist(p);
-    }
-  }
-
-  tabLabel(tab: 'description' | 'specifications' | 'reviews' | 'shipping'): string {
+  tabLabel(tab: 'description' | 'specifications' | 'reviews'): string {
     switch (tab) {
       case 'description':
         return 'Description';
@@ -587,8 +511,6 @@ export class ProductDetailPageComponent {
         return 'Specifications';
       case 'reviews':
         return `Reviews (${this.reviewCount()})`;
-      case 'shipping':
-        return 'Shipping & Returns';
     }
   }
 }

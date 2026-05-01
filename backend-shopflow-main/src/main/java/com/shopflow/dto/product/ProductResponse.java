@@ -14,6 +14,7 @@ public record ProductResponse(
         Integer stock,
         Long salesCount,
         List<String> categories,
+        Long sellerId,
         String sellerName,
         List<String> imageUrls,
         List<ProductVariantResponse> variants,

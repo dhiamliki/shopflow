@@ -1,5 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { MarketplaceMetricsService } from '../../core/services/marketplace-metrics.service';
 import { NavigationService } from '../../core/services/navigation.service';
 import { IconComponent } from '../../shared/components/icon.component';
 
@@ -38,7 +40,7 @@ import { IconComponent } from '../../shared/components/icon.component';
             </div>
 
             <div class="grid max-w-[520px] grid-cols-2 gap-5 border-t border-white/8 pt-7 sm:grid-cols-4">
-              @for (stat of stats; track stat.label) {
+              @for (stat of stats(); track stat.label) {
                 <div>
                   <p class="text-[1.85rem] font-semibold tracking-tight text-white">{{ stat.value }}</p>
                   <p class="mt-1 text-xs text-zinc-500">{{ stat.label }}</p>
@@ -87,6 +89,15 @@ import { IconComponent } from '../../shared/components/icon.component';
 })
 export class HomePageComponent {
   private readonly navigation = inject(NavigationService);
+  private readonly metricsService = inject(MarketplaceMetricsService);
+  private readonly metrics = toSignal(this.metricsService.getSnapshot(), {
+    initialValue: {
+      totalProducts: null,
+      totalCategories: null,
+      promotedProducts: null,
+      topSellingProducts: null
+    }
+  });
 
   onStartSelling(): void {
     this.navigation.navigateToSelling();
@@ -113,12 +124,15 @@ export class HomePageComponent {
     }
   ];
 
-  readonly stats = [
-    { value: '10K+', label: 'Active Listings' },
-    { value: '25K+', label: 'Happy Users' },
-    { value: '99%', label: 'Positive Reviews' },
-    { value: 'Worldwide', label: 'Community' }
-  ];
+  readonly stats = computed(() => {
+    const metrics = this.metrics();
+    return [
+      { value: this.formatMetric(metrics.totalProducts), label: 'Active Products' },
+      { value: this.formatMetric(metrics.totalCategories), label: 'Categories' },
+      { value: this.formatMetric(metrics.promotedProducts), label: 'Promotions' },
+      { value: this.formatMetric(metrics.topSellingProducts), label: 'Top-selling Picks' }
+    ];
+  });
 
   readonly features = [
     {
@@ -142,4 +156,8 @@ export class HomePageComponent {
       copy: 'Everything you need to grow your business.'
     }
   ];
+
+  private formatMetric(value: number | null): string {
+    return value === null ? 'Unavailable' : value.toLocaleString('en-US');
+  }
 }

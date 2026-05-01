@@ -85,7 +85,7 @@ export class HowItWorksPageComponent {
     {
       eyebrow: 'For Buyers',
       title: 'Discover products from trusted sellers',
-      body: 'Browse categories, compare products, save favorites, and move through secure checkout with confidence.'
+      body: 'Browse categories, compare product details, add items to cart, and move through checkout with confidence.'
     },
     {
       eyebrow: 'For Sellers',
@@ -101,7 +101,7 @@ export class HowItWorksPageComponent {
       icon: 'search',
       steps: [
         { index: '01', title: 'Explore categories', body: 'Browse products by category, filters, and best-selling picks.' },
-        { index: '02', title: 'Review details', body: 'Inspect gallery views, seller information, reviews, and shipping terms.' },
+        { index: '02', title: 'Review details', body: 'Inspect gallery views, seller information, reviews, price, stock, and variants.' },
         { index: '03', title: 'Checkout securely', body: 'Complete your order with a smooth, structured checkout flow.' }
       ]
     },
@@ -112,7 +112,7 @@ export class HowItWorksPageComponent {
       steps: [
         { index: '01', title: 'View order history', body: 'See every order, status change, and next action from your account area.' },
         { index: '02', title: 'Track delivery', body: 'Follow your order from processing to delivery with clear milestones.' },
-        { index: '03', title: 'Review next steps', body: 'Use the order view to confirm shipment status, delivery timing, and available actions.' }
+        { index: '03', title: 'Review next steps', body: 'Use the order view to confirm shipment status, order details, and available actions.' }
       ]
     },
     {

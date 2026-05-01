@@ -46,7 +46,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/h2-console/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**", "/api/reviews/product/**", "/api/coupons/validate/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**", "/api/stores/**", "/api/reviews/product/**", "/api/coupons/validate/**").permitAll()
                         .requestMatchers("/api/dashboard/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/dashboard/seller/**").hasAnyRole("SELLER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

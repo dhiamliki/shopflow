@@ -372,56 +372,46 @@ a:focus-visible {
 
 .sf-product-media-well,
 .sf-product-gallery-stage {
-  background:
-    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.16), transparent 36%),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.08),
-      rgba(255, 255, 255, 0.025) 54%,
-      rgba(0, 0, 0, 0.14)
-    ),
-    #121315;
+  background: #f6f4ef;
 }
 
 .sf-product-gallery-stage {
-  background:
-    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.18), transparent 38%),
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.09),
-      rgba(255, 255, 255, 0.03) 56%,
-      rgba(0, 0, 0, 0.12)
-    ),
-    #101113;
+  background: #f7f5f0;
 }
 
+/* Shared product image base */
 .sf-product-card-image,
 .sf-product-detail-image,
 .sf-product-thumb-image {
   display: block;
   height: 100%;
   width: 100%;
-  object-fit: cover;
-  object-position: center 46%;
   opacity: 1;
   transition: transform 260ms ease;
   transform-origin: center;
 }
 
+/* Product photos share one sizing path across cards, detail, and thumbnails. */
 .sf-product-card-image {
-  transform: scale(1.12);
+  object-fit: cover;
+  object-position: center center;
+  transform: scale(1);
 }
 
 .group:hover .sf-product-card-image {
-  transform: scale(1.16);
+  transform: scale(1.04);
 }
 
 .sf-product-detail-image {
-  transform: scale(1.08);
+  object-fit: cover;
+  object-position: center center;
+  transform: scale(1);
 }
 
 .sf-product-thumb-image {
-  transform: scale(1.08);
+  object-fit: cover;
+  object-position: center center;
+  transform: scale(1);
 }
 
 .sf-check {

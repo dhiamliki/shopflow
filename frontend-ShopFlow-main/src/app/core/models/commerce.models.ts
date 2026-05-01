@@ -27,6 +27,7 @@ export interface Product {
   stock: number;
   salesCount: number;
   categories: string[];
+  sellerId: number;
   sellerName: string;
   imageUrls: string[];
   variants: ProductVariant[];
@@ -64,6 +65,16 @@ export interface ProductFilters {
   sortDirection?: 'asc' | 'desc';
   page?: number;
   size?: number;
+}
+
+export interface SellerStore {
+  sellerId: number;
+  sellerName: string;
+  shopName: string;
+  description: string;
+  logoUrl: string | null;
+  rating: number;
+  activeProductCount: number;
 }
 
 export interface CartItem {
