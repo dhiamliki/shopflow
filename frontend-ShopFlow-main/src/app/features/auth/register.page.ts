@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -7,6 +8,8 @@ import { UserRole } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
 import { SessionService } from '../../core/services/session.service';
 import { IconComponent } from '../../shared/components/icon.component';
+
+const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).+$/;
 
 @Component({
   selector: 'app-register-page',
@@ -131,7 +134,7 @@ export class RegisterPageComponent {
     email: ['', [Validators.required, Validators.email]],
     shopName: [''],
     shopDescription: [''],
-    password: ['', [Validators.required, Validators.minLength(8)]],
+    password: ['', [Validators.required, Validators.minLength(8), Validators.pattern(STRONG_PASSWORD_REGEX)]],
     confirmPassword: ['', [Validators.required, Validators.minLength(8)]],
     agree: [true, Validators.requiredTrue]
   });
@@ -151,6 +154,7 @@ export class RegisterPageComponent {
 
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
+      this.signupError.set(this.getInvalidFormMessage());
       return;
     }
 
@@ -179,8 +183,67 @@ export class RegisterPageComponent {
       .pipe(finalize(() => this.signupPending.set(false)))
       .subscribe({
         next: () => this.finishAuthRedirect(),
-        error: () => this.signupError.set('We could not create your account. Try a different email or a stronger password.')
+        error: (error: unknown) => this.signupError.set(this.getSignupErrorMessage(error))
       });
+  }
+
+  private getSignupErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 0) {
+        return 'Backend is unreachable on port 9090. Start the backend and try again.';
+      }
+
+      const message = typeof error.error?.message === 'string' ? error.error.message : null;
+      const details = Array.isArray(error.error?.details) ? error.error.details : [];
+
+      if (details.length > 0) {
+        return details.join(' ');
+      }
+
+      if (message) {
+        return message;
+      }
+    }
+
+    return 'We could not create your account. Try a different email or a stronger password.';
+  }
+
+  private getInvalidFormMessage(): string {
+    const controls = this.registerForm.controls;
+
+    if (controls.firstName.invalid || controls.lastName.invalid) {
+      return 'Please enter your first and last name.';
+    }
+
+    if (controls.email.invalid) {
+      return 'Please enter a valid email address.';
+    }
+
+    if (this.role() === 'SELLER' && !controls.shopName.value.trim()) {
+      return 'Enter your shop name to create a seller account.';
+    }
+
+    if (controls.password.hasError('required')) {
+      return 'Password is required.';
+    }
+
+    if (controls.password.hasError('minlength')) {
+      return 'Password must be at least 8 characters.';
+    }
+
+    if (controls.password.hasError('pattern')) {
+      return 'Password must include uppercase, lowercase, a number, and a special character.';
+    }
+
+    if (controls.confirmPassword.invalid) {
+      return 'Please confirm your password.';
+    }
+
+    if (controls.agree.invalid) {
+      return 'You must agree to the Terms of Service and Privacy Policy.';
+    }
+
+    return 'Please check your information and try again.';
   }
 
   private finishAuthRedirect(): void {

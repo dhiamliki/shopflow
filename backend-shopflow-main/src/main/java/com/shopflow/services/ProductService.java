@@ -21,6 +21,8 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ProductService {
 
+    private static final int MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductVariantRepository productVariantRepository;
@@ -247,7 +249,7 @@ public class ProductService {
             if (url.startsWith("data:image/")) {
                 ParsedImageData parsedImage = parseImageDataUrl(url);
                 String fileName = "seller-upload-" + UUID.randomUUID() + "." + extensionFor(parsedImage.contentType());
-                image.setImageUrl("seller-uploads/" + fileName);
+                image.setImageUrl(null);
                 image.setImageData(parsedImage.bytes());
                 image.setContentType(parsedImage.contentType());
                 image.setFileName(fileName);
@@ -276,7 +278,11 @@ public class ProductService {
         }
 
         try {
-            return new ParsedImageData(contentType, Base64.getDecoder().decode(encoded.getBytes(StandardCharsets.UTF_8)));
+            byte[] bytes = Base64.getDecoder().decode(encoded.getBytes(StandardCharsets.UTF_8));
+            if (bytes.length > MAX_IMAGE_BYTES) {
+                throw new BadRequestException("Each uploaded image must be 5 MB or smaller");
+            }
+            return new ParsedImageData(contentType, bytes);
         } catch (IllegalArgumentException exception) {
             throw new BadRequestException("Invalid image data");
         }

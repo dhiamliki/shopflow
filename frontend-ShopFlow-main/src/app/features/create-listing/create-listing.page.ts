@@ -1,4 +1,5 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +8,8 @@ import { CategoriesService } from '../../core/services/categories.service';
 import { CatalogService } from '../../core/services/catalog.service';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
+
+const MAX_IMAGE_FILE_BYTES = 5 * 1024 * 1024;
 
 @Component({
   selector: 'app-create-listing-page',
@@ -215,10 +218,15 @@ export class CreateListingPageComponent {
   }
 
   onFilesSelected(event: Event): void {
+    this.message.set('');
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []).slice(0, 5 - this.uploadedImages().length);
 
     for (const file of files) {
+      if (file.size > MAX_IMAGE_FILE_BYTES) {
+        this.message.set('Each image must be 5 MB or smaller.');
+        continue;
+      }
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result;
@@ -269,13 +277,31 @@ export class CreateListingPageComponent {
           this.message.set('Listing published successfully.');
           void this.router.navigateByUrl('/seller/dashboard');
         },
-        error: () => {
-          this.message.set('We could not publish this listing yet. Please check the listing details and try again.');
+        error: (error: unknown) => {
+          this.message.set(this.getPublishErrorMessage(error));
         }
       });
   }
 
   categoryOptionLabel(depth: number, name: string): string {
     return `${'-- '.repeat(depth)}${name}`;
+  }
+
+  private getPublishErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      if (error.status === 0) {
+        return 'Backend is unreachable on port 9090. Start backend and try again.';
+      }
+
+      const message = typeof error.error?.message === 'string' ? error.error.message : null;
+      const details = Array.isArray(error.error?.details) ? error.error.details : [];
+      if (details.length > 0) {
+        return details.join(' ');
+      }
+      if (message) {
+        return message;
+      }
+    }
+    return 'We could not publish this listing yet. Please check the listing details and try again.';
   }
 }

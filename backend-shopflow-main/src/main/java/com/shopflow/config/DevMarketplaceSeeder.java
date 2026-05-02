@@ -5,6 +5,7 @@ import com.shopflow.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -316,11 +317,13 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final CouponRepository couponRepository;
+    private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void run(String... args) {
+        normalizeLegacyEnums();
         List<SellerSeed> sellerSeeds = sellerSeeds();
         List<CustomerSeed> customerSeeds = customerSeeds();
         Map<String, Category> categoriesByName = createCategoryTree();
@@ -336,6 +339,69 @@ public class DevMarketplaceSeeder implements CommandLineRunner {
         Map<User, List<Address>> customerAddresses = createCustomerAddresses(customers);
         createOrders(customers, customerAddresses, products);
         createCarts(customers, products, couponsByCode);
+    }
+
+    private void normalizeLegacyEnums() {
+        normalizeLegacyCouponTypeEnum();
+        normalizeLegacyOrderStatusEnum();
+        normalizeProductImageBlobColumn();
+    }
+
+    private void normalizeLegacyCouponTypeEnum() {
+        String columnType = jdbcTemplate.query(
+                """
+                        SELECT COLUMN_TYPE
+                        FROM information_schema.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'coupon'
+                          AND COLUMN_NAME = 'type'
+                        """,
+                rs -> rs.next() ? rs.getString("COLUMN_TYPE") : null
+        );
+        if (columnType == null || !columnType.toUpperCase(Locale.ROOT).contains("PERCENTAGE")) {
+            return;
+        }
+
+        jdbcTemplate.execute("ALTER TABLE coupon MODIFY COLUMN type ENUM('FIXED','PERCENTAGE','PERCENT') NOT NULL");
+        jdbcTemplate.update("UPDATE coupon SET type = 'PERCENT' WHERE type = 'PERCENTAGE'");
+        jdbcTemplate.execute("ALTER TABLE coupon MODIFY COLUMN type ENUM('FIXED','PERCENT') NOT NULL");
+    }
+
+    private void normalizeLegacyOrderStatusEnum() {
+        String columnType = jdbcTemplate.query(
+                """
+                        SELECT COLUMN_TYPE
+                        FROM information_schema.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'orders'
+                          AND COLUMN_NAME = 'status'
+                        """,
+                rs -> rs.next() ? rs.getString("COLUMN_TYPE") : null
+        );
+        if (columnType == null || columnType.toUpperCase(Locale.ROOT).contains("PROCESSING")) {
+            return;
+        }
+
+        jdbcTemplate.execute(
+                "ALTER TABLE orders MODIFY COLUMN status ENUM('PENDING','PAID','PROCESSING','SHIPPED','DELIVERED','CANCELLED') NOT NULL");
+    }
+
+    private void normalizeProductImageBlobColumn() {
+        String dataType = jdbcTemplate.query(
+                """
+                        SELECT DATA_TYPE
+                        FROM information_schema.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'product_image'
+                          AND COLUMN_NAME = 'image_data'
+                        """,
+                rs -> rs.next() ? rs.getString("DATA_TYPE") : null
+        );
+        if (dataType == null || "longblob".equalsIgnoreCase(dataType)) {
+            return;
+        }
+
+        jdbcTemplate.execute("ALTER TABLE product_image MODIFY COLUMN image_data LONGBLOB NULL");
     }
 
     private boolean isSeedComplete(List<SellerSeed> sellerSeeds) {
