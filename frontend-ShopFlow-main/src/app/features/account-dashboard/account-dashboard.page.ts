@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
@@ -9,11 +9,13 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
 import { SectionHeadingComponent } from '../../shared/components/section-heading/section-heading.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
+import { formatTndCurrency } from '../../shared/utils/currency';
 
 @Component({
   selector: 'app-account-dashboard-page',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, IconComponent, PanelCardComponent, SectionHeadingComponent, EmptyStateComponent],
+  imports: [CommonModule, TndCurrencyPipe, IconComponent, PanelCardComponent, SectionHeadingComponent, EmptyStateComponent],
   template: `
     <div class="space-y-6">
       <app-section-heading
@@ -47,7 +49,7 @@ import { SectionHeadingComponent } from '../../shared/components/section-heading
                     <p class="text-sm text-zinc-400">{{ order.items[0]?.productName || 'Order items' }}</p>
                   </div>
                   <div class="text-right">
-                    <p class="text-lg font-semibold text-white">{{ order.totalAmount | currency: 'USD' : 'symbol' : '1.2-2' }}</p>
+                    <p class="text-lg font-semibold text-white">{{ order.totalAmount | tndCurrency }}</p>
                     <p class="text-sm text-zinc-400">{{ order.status }}</p>
                   </div>
                 </div>
@@ -65,7 +67,7 @@ import { SectionHeadingComponent } from '../../shared/components/section-heading
                     <img class="h-16 w-16 rounded-[16px] object-cover" [src]="item.imageUrls[0]" [alt]="item.name" />
                     <div class="min-w-0 flex-1">
                       <p class="line-clamp-2 text-base font-semibold text-white">{{ item.name }}</p>
-                      <p class="mt-1 text-sm text-zinc-400">{{ item.effectivePrice | currency: 'USD' : 'symbol' : '1.2-2' }}</p>
+                      <p class="mt-1 text-sm text-zinc-400">{{ item.effectivePrice | tndCurrency }}</p>
                     </div>
                   </div>
                 }
@@ -104,9 +106,9 @@ export class AccountDashboardPageComponent {
     },
     {
       icon: 'card',
-      value: this.orders()
-        .reduce((total, order) => total + order.totalAmount, 0)
-        .toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
+      value: formatTndCurrency(
+        this.orders().reduce((total, order) => total + order.totalAmount, 0)
+      ),
       label: 'Total Spent',
       meta: 'Lifetime'
     }

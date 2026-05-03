@@ -1,6 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { SessionService } from '../../core/services/session.service';
@@ -23,7 +25,7 @@ import { IconComponent } from '../../shared/components/icon.component';
           </p>
         </div>
 
-        <div class="panel-dark p-8 space-y-6">
+        <form class="panel-dark p-8 space-y-6" [formGroup]="form" (ngSubmit)="submit()">
           <div class="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
             <div class="flex items-start gap-4">
               <app-icon name="circle-check" [size]="20" className="text-emerald-400 mt-0.5" />
@@ -67,17 +69,18 @@ import { IconComponent } from '../../shared/components/icon.component';
             <button type="button" (click)="cancel()" class="button-secondary flex-1">
               Cancel
             </button>
-            <button type="button" (click)="submit()" class="button-primary flex-1" [disabled]="pending()">
+            <button type="submit" class="button-primary flex-1" [disabled]="pending()">
               {{ pending() ? 'Setting up...' : 'Become a Seller' }}
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </section>
   `
 })
 export class SellerOnboardingPageComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   readonly session = inject(SessionService);
@@ -102,6 +105,16 @@ export class SellerOnboardingPageComponent {
     'Other'
   ];
 
+  constructor() {
+    this.form.controls.shopName.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((shopName) => {
+        if (shopName.trim() && this.error() === 'Please enter your shop name.') {
+          this.error.set('');
+        }
+      });
+  }
+
   toggleCategory(category: string): void {
     const current = this.selectedCategories();
     if (current.includes(category)) {
@@ -118,8 +131,10 @@ export class SellerOnboardingPageComponent {
   submit(): void {
     this.error.set('');
     const value = this.form.getRawValue();
+    const shopName = value.shopName.trim();
 
-    if (!value.shopName.trim()) {
+    if (this.form.invalid || !shopName) {
+      this.form.markAllAsTouched();
       this.error.set('Please enter your shop name.');
       return;
     }
@@ -129,7 +144,7 @@ export class SellerOnboardingPageComponent {
     // Update user to seller role via API
     this.auth
       .updateToSeller({
-        shopName: value.shopName.trim(),
+        shopName,
         shopDescription: value.shopDescription?.trim() || null,
         categories: this.selectedCategories()
       })
@@ -140,9 +155,24 @@ export class SellerOnboardingPageComponent {
           this.session.patchUser({ role: 'SELLER' });
           void this.router.navigate(['/seller/dashboard']);
         },
-        error: () => {
-          this.error.set('Failed to upgrade account. Please try again.');
+        error: (error: unknown) => {
+          this.error.set(this.getErrorMessage(error));
         }
       });
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const details = Array.isArray(error.error?.details) ? error.error.details : [];
+      if (details.length > 0) {
+        return details.join(' ');
+      }
+
+      if (typeof error.error?.message === 'string') {
+        return error.error.message;
+      }
+    }
+
+    return 'Failed to upgrade account. Please try again.';
   }
 }

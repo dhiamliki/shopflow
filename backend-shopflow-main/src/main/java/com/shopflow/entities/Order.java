@@ -31,6 +31,11 @@ public class Order {
     @Column(nullable = false)
     private OrderStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private PaymentMethod paymentMethod = PaymentMethod.PAY_ON_DELIVERY;
+
     @Builder.Default
     private Double subtotal = 0.0;
 

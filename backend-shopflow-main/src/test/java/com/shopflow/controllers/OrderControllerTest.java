@@ -2,6 +2,7 @@ package com.shopflow.controllers;
 
 import com.shopflow.dto.order.OrderResponse;
 import com.shopflow.entities.OrderStatus;
+import com.shopflow.entities.PaymentMethod;
 import com.shopflow.security.JwtAuthenticationFilter;
 import com.shopflow.services.OrderService;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,7 @@ class OrderControllerTest {
                 1L,
                 "ORD-2026-00001",
                 OrderStatus.PENDING,
+                PaymentMethod.PAY_ON_DELIVERY,
                 120.0,
                 0.0,
                 12.0,
@@ -70,18 +72,19 @@ class OrderControllerTest {
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void checkoutShouldReturnOk() throws Exception {
-        when(orderService.placeOrder(1L)).thenReturn(sampleOrder());
+        when(orderService.placeOrder(1L, PaymentMethod.PAY_ON_DELIVERY)).thenReturn(sampleOrder());
 
         mockMvc.perform(post("/api/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "addressId": 1
+                                  "addressId": 1,
+                                  "paymentMethod": "PAY_ON_DELIVERY"
                                 }
                                 """))
                 .andExpect(status().isCreated());
 
-        verify(orderService).placeOrder(1L);
+        verify(orderService).placeOrder(1L, PaymentMethod.PAY_ON_DELIVERY);
     }
 
     @Test

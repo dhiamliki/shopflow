@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -9,13 +9,14 @@ import { CartService } from '../../core/services/cart.service';
 import { OrdersService } from '../../core/services/orders.service';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
 
 type TrackingOrderItem = OrderItem & { product: Product };
 
 @Component({
   selector: 'app-order-tracking-page',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, RouterLink, IconComponent, PanelCardComponent],
+  imports: [CommonModule, TndCurrencyPipe, RouterLink, IconComponent, PanelCardComponent],
   template: `
     @if (order(); as current) {
     <div class="space-y-6">
@@ -111,13 +112,13 @@ type TrackingOrderItem = OrderItem & { product: Product };
           <div class="space-y-4">
             @for (item of enrichedItems(); track item.productId) {
               <div class="flex items-center gap-4 rounded-[22px] border border-white/8 bg-white/[0.03] p-4">
-                <img class="h-20 w-20 rounded-[18px] object-cover" [src]="item.product.imageUrls[0]" [alt]="item.productName" />
+                <img class="h-[76px] w-[76px] shrink-0 rounded-md object-cover sm:h-[88px] sm:w-[88px]" [src]="item.product.imageUrls[0]" [alt]="item.productName" />
                 <div class="min-w-0 flex-1">
-                  <p class="line-clamp-2 text-lg font-semibold text-white">{{ item.productName }}</p>
+                  <p class="line-clamp-2 text-base font-semibold text-white">{{ item.productName }}</p>
                   <p class="mt-1 text-sm text-zinc-400">{{ item.variantLabel || 'Standard' }}</p>
                   <p class="mt-1 text-sm text-zinc-400">Qty: {{ item.quantity }}</p>
                 </div>
-                <p class="text-xl font-semibold text-white">{{ item.totalPrice | currency: 'USD' : 'symbol' : '1.2-2' }}</p>
+                <p class="shrink-0 text-base font-semibold text-white">{{ item.totalPrice | tndCurrency }}</p>
               </div>
             }
           </div>
@@ -127,6 +128,10 @@ type TrackingOrderItem = OrderItem & { product: Product };
         <div class="space-y-5">
           <app-panel-card title="Shipping Address">
             <p class="whitespace-pre-line text-base leading-8 text-zinc-300">{{ shippingAddress() }}</p>
+          </app-panel-card>
+
+          <app-panel-card title="Payment Method">
+            <p class="text-base leading-8 text-zinc-300">{{ paymentMethodLabel(current.paymentMethod) }}</p>
           </app-panel-card>
 
           <app-panel-card title="More Actions">
@@ -288,5 +293,11 @@ export class OrderTrackingPageComponent {
         quantity: item.quantity
       }).subscribe();
     }
+  }
+
+  paymentMethodLabel(paymentMethod: string | null | undefined): string {
+    return paymentMethod === 'PAY_ON_DELIVERY'
+      ? 'Pay in person when delivery arrives'
+      : 'Pay in person when delivery arrives';
   }
 }

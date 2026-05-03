@@ -107,4 +107,33 @@ class AuthControllerTest {
 
         verify(authService).refreshToken("refresh-token");
     }
+
+    @Test
+    void updateRoleShouldReturnOk() throws Exception {
+        when(authService.updateToSeller(any())).thenReturn(new AuthResponse("access", "refresh", null));
+
+        mockMvc.perform(post("/api/auth/update-role")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "shopName": "Tunis Market",
+                                  "shopDescription": "Local marketplace"
+                                }
+                                """))
+                .andExpect(status().isOk());
+
+        verify(authService).updateToSeller(any());
+    }
+
+    @Test
+    void updateRoleShouldRejectBlankShopName() throws Exception {
+        mockMvc.perform(post("/api/auth/update-role")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "shopName": "   "
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+    }
 }

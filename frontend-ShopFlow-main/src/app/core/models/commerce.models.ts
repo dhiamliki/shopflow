@@ -122,6 +122,7 @@ export interface AddressPayload {
 }
 
 export type OrderStatus = 'PENDING' | 'PAID' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+export type PaymentMethod = 'PAY_ON_DELIVERY';
 
 export interface OrderItem {
   productId: number;
@@ -137,6 +138,7 @@ export interface Order {
   id: number;
   orderNumber: string;
   status: OrderStatus;
+  paymentMethod: PaymentMethod;
   subtotal: number;
   discountAmount: number;
   shippingFee: number;

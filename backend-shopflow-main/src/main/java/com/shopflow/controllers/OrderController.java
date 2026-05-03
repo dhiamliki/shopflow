@@ -23,7 +23,7 @@ public class OrderController {
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody CheckoutRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.placeOrder(request.addressId()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.placeOrder(request.addressId(), request.paymentMethod()));
     }
 
     @GetMapping

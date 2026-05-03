@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -10,13 +10,14 @@ import { SessionService } from '../../core/services/session.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
 
 @Component({
   selector: 'app-cart-page',
   standalone: true,
   imports: [
     CommonModule,
-    CurrencyPipe,
+    TndCurrencyPipe,
     RouterLink,
     EmptyStateComponent,
     IconComponent,
@@ -60,18 +61,18 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
 
             <div class="overflow-hidden rounded-[28px] border border-white/8">
               @for (item of enrichedItems(); track item.id) {
-                <article class="grid gap-5 border-b border-white/8 bg-white/[0.02] p-5 sm:grid-cols-[140px,1fr,140px,120px] sm:items-center lg:p-7">
+                <article class="grid grid-cols-[80px,minmax(0,1fr)] gap-4 border-b border-white/8 bg-white/[0.02] p-4 sm:grid-cols-[96px,minmax(0,1fr),132px,120px] sm:items-center lg:grid-cols-[104px,minmax(0,1fr),140px,124px] lg:p-5">
                   <a
                     [routerLink]="['/product', item.productId]"
-                    class="overflow-hidden rounded-[20px] border border-white/8 bg-white/[0.03]"
+                    class="h-20 w-20 shrink-0 overflow-hidden rounded-md border border-white/8 bg-white/[0.03] sm:h-24 sm:w-24 lg:h-[104px] lg:w-[104px]"
                   >
-                    <img class="aspect-square w-full object-cover" [src]="item.product.imageUrls[0]" [alt]="item.productName" />
+                    <img class="h-full w-full object-cover" [src]="item.product.imageUrls[0]" [alt]="item.productName" />
                   </a>
 
-                  <div class="space-y-3">
+                  <div class="min-w-0 space-y-3">
                     <div>
                       <p class="text-sm text-zinc-500">{{ item.product.sellerName }}</p>
-                      <a [routerLink]="['/product', item.productId]" class="mt-1 block text-[1.65rem] font-semibold leading-9 text-white">
+                      <a [routerLink]="['/product', item.productId]" class="mt-1 line-clamp-2 block text-lg font-semibold leading-7 text-white lg:text-xl">
                         {{ item.productName }}
                       </a>
                     </div>
@@ -87,20 +88,20 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                     </div>
                   </div>
 
-                  <div class="space-y-4">
+                  <div class="col-start-2 flex items-center justify-between gap-3 sm:col-start-auto sm:block sm:space-y-3">
                     <p class="text-base font-semibold text-white">
-                      {{ item.unitPrice | currency: 'USD' : 'symbol' : '1.2-2' }}
+                      {{ item.unitPrice | tndCurrency }}
                     </p>
-                    <div class="inline-flex items-center rounded-2xl border border-white/10 bg-white/[0.03]">
-                      <button type="button" class="px-4 py-3 text-zinc-300" (click)="updateQuantity(item, item.quantity - 1)">-</button>
-                      <span class="px-5 py-3 text-lg font-semibold text-white">{{ item.quantity }}</span>
-                      <button type="button" class="px-4 py-3 text-zinc-300" (click)="updateQuantity(item, item.quantity + 1)">+</button>
+                    <div class="inline-flex h-10 items-center rounded-md border border-white/10 bg-white/[0.03]">
+                      <button type="button" class="h-10 px-3 text-zinc-300" (click)="updateQuantity(item, item.quantity - 1)">-</button>
+                      <span class="min-w-10 px-2 text-center text-base font-semibold text-white">{{ item.quantity }}</span>
+                      <button type="button" class="h-10 px-3 text-zinc-300" (click)="updateQuantity(item, item.quantity + 1)">+</button>
                     </div>
                   </div>
 
-                  <div class="space-y-3 text-right">
+                  <div class="col-start-2 flex items-center justify-between gap-3 sm:col-start-auto sm:block sm:space-y-3 sm:text-right">
                     <p class="text-base font-semibold text-white">
-                      {{ item.totalPrice | currency: 'USD' : 'symbol' : '1.2-2' }}
+                      {{ item.totalPrice | tndCurrency }}
                     </p>
                     <button type="button" class="inline-flex items-center gap-2 text-zinc-300 hover:text-white" (click)="removeItem(item.id)">
                       <app-icon name="trash" [size]="16" className="text-zinc-300" />
@@ -117,18 +118,18 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               <div class="space-y-5 text-lg">
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-400">Subtotal ({{ enrichedItems().length }} items)</span>
-                  <span class="text-white">{{ cartService.cart().subtotal | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
+                  <span class="text-white">{{ cartService.cart().subtotal | tndCurrency }}</span>
                 </div>
                 @if (cartService.cart().discount > 0) {
                   <div class="flex items-center justify-between">
                     <span class="text-zinc-400">Discount</span>
-                    <span class="text-emerald-300">-{{ cartService.cart().discount | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
+                    <span class="text-emerald-300">-{{ cartService.cart().discount | tndCurrency }}</span>
                   </div>
                 }
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-400">Shipping</span>
                   <span class="text-emerald-300">
-                    {{ cartService.cart().shippingFee === 0 ? 'Free' : (cartService.cart().shippingFee | currency: 'USD' : 'symbol' : '1.2-2') }}
+                    {{ cartService.cart().shippingFee === 0 ? 'Free' : (cartService.cart().shippingFee | tndCurrency) }}
                   </span>
                 </div>
               </div>
@@ -138,7 +139,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               <div class="flex items-center justify-between">
                 <span class="text-2xl font-semibold text-white">Total</span>
                 <span class="text-4xl font-semibold tracking-tight text-white">
-                  {{ cartService.cart().totalTtc | currency: 'USD' : 'symbol' : '1.2-2' }}
+                  {{ cartService.cart().totalTtc | tndCurrency }}
                 </span>
               </div>
 

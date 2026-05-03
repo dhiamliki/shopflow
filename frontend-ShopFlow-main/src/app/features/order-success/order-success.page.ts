@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -9,13 +9,15 @@ import { OrdersService } from '../../core/services/orders.service';
 import { SessionService } from '../../core/services/session.service';
 import { IconComponent } from '../../shared/components/icon.component';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
+import { formatTndCurrency } from '../../shared/utils/currency';
 
 type EnrichedOrderItem = OrderItem & { product: Product };
 
 @Component({
   selector: 'app-order-success-page',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, RouterLink, IconComponent, ProductCardComponent],
+  imports: [CommonModule, TndCurrencyPipe, RouterLink, IconComponent, ProductCardComponent],
   template: `
     @if (order(); as o) {
       <section class="sf-page py-8">
@@ -38,7 +40,7 @@ type EnrichedOrderItem = OrderItem & { product: Product };
               </div>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-4">
               @for (meta of orderMeta(); track meta.label) {
                 <div class="panel-dark flex items-start gap-4 p-5">
                   <span class="mt-1 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.03]">
@@ -94,12 +96,12 @@ type EnrichedOrderItem = OrderItem & { product: Product };
               <div class="mt-6 space-y-4">
                 @for (item of enrichedItems(); track item.productId) {
                   <div class="flex items-center gap-4">
-                    <img class="h-20 w-20 rounded-[18px] object-cover" [src]="item.product.imageUrls[0]" [alt]="item.productName" />
+                    <img class="h-[76px] w-[76px] shrink-0 rounded-md object-cover sm:h-[88px] sm:w-[88px]" [src]="item.product.imageUrls[0]" [alt]="item.productName" />
                     <div class="min-w-0 flex-1">
-                      <p class="line-clamp-2 text-lg font-semibold text-white">{{ item.productName }}</p>
+                      <p class="line-clamp-2 text-base font-semibold text-white">{{ item.productName }}</p>
                       <p class="text-sm text-zinc-400">{{ item.variantLabel || 'Standard' }}</p>
                     </div>
-                    <p class="text-xl font-semibold text-white">{{ item.totalPrice | currency: 'USD' : 'symbol' : '1.2-2' }}</p>
+                    <p class="shrink-0 text-base font-semibold text-white">{{ item.totalPrice | tndCurrency }}</p>
                   </div>
                 }
               </div>
@@ -109,15 +111,19 @@ type EnrichedOrderItem = OrderItem & { product: Product };
               <div class="space-y-4 text-base">
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-400">Subtotal</span>
-                  <span class="text-white">{{ o.subtotal | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
+                  <span class="text-white">{{ o.subtotal | tndCurrency }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-400">Shipping</span>
-                  <span class="text-emerald-300">{{ o.shippingFee === 0 ? 'Free' : (o.shippingFee | currency: 'USD' : 'symbol' : '1.2-2') }}</span>
+                  <span class="text-emerald-300">{{ o.shippingFee === 0 ? 'Free' : (o.shippingFee | tndCurrency) }}</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-400">Discount</span>
-                  <span class="text-white">{{ o.discountAmount | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
+                  <span class="text-white">{{ o.discountAmount | tndCurrency }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-zinc-400">Payment</span>
+                  <span class="text-right text-white">{{ paymentMethodLabel(o.paymentMethod) }}</span>
                 </div>
               </div>
 
@@ -126,7 +132,7 @@ type EnrichedOrderItem = OrderItem & { product: Product };
               <div class="flex items-center justify-between">
                 <span class="text-2xl font-semibold text-white">Total</span>
                 <span class="text-4xl font-semibold tracking-tight text-white">
-                  {{ o.totalAmount | currency: 'USD' : 'symbol' : '1.2-2' }}
+                  {{ o.totalAmount | tndCurrency }}
                 </span>
               </div>
 
@@ -201,9 +207,15 @@ export class OrderSuccessPageComponent {
       },
       {
         label: 'Order Total',
-        value: o.totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
-        note: o.totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
-        icon: 'card'
+        value: formatTndCurrency(o.totalAmount),
+        note: formatTndCurrency(o.totalAmount),
+        icon: 'wallet'
+      },
+      {
+        label: 'Payment',
+        value: this.paymentMethodLabel(o.paymentMethod),
+        note: '',
+        icon: 'wallet'
       }
     ];
   });
@@ -234,4 +246,10 @@ export class OrderSuccessPageComponent {
       complete: false
     }
   ];
+
+  paymentMethodLabel(paymentMethod: string | null | undefined): string {
+    return paymentMethod === 'PAY_ON_DELIVERY'
+      ? 'Pay in person when delivery arrives'
+      : 'Pay in person when delivery arrives';
+  }
 }

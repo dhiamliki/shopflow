@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -8,161 +8,305 @@ import { CategoriesService } from '../../core/services/categories.service';
 import { CatalogService } from '../../core/services/catalog.service';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
 
 const MAX_IMAGE_FILE_BYTES = 5 * 1024 * 1024;
 
 @Component({
   selector: 'app-create-listing-page',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, ReactiveFormsModule, IconComponent, PanelCardComponent],
+  imports: [CommonModule, TndCurrencyPipe, ReactiveFormsModule, IconComponent, PanelCardComponent],
+  styles: [
+    `
+      .create-listing-grid {
+        display: grid;
+        gap: 1.5rem;
+      }
+
+      @media (min-width: 1024px) {
+        .create-listing-grid {
+          grid-template-columns: minmax(0, 1fr) 340px;
+          align-items: start;
+          gap: 2rem;
+        }
+
+        .create-listing-aside {
+          position: sticky;
+          top: 7rem;
+          max-height: calc(100vh - 8rem);
+          overflow-y: auto;
+        }
+      }
+
+      .listing-thumb-slot {
+        width: 88px;
+        height: 88px;
+        flex-shrink: 0;
+      }
+    `,
+  ],
   template: `
-    <div class="space-y-6">
+    <div class="space-y-7">
+      <!-- Page header -->
       <div class="flex flex-wrap items-center justify-between gap-4">
-        <div class="space-y-2">
-          <h1 class="font-display text-5xl font-semibold tracking-tight text-white">Create a New Listing</h1>
-          <p class="text-lg text-zinc-400">Fill in the details below to list your product on ShopFlow.</p>
+        <div>
+          <h1 class="text-4xl font-bold tracking-tight text-white lg:text-5xl">
+            Create a New Listing
+          </h1>
+          <p class="mt-2 text-base text-zinc-500">
+            Fill in the details below to list your product on ShopFlow.
+          </p>
         </div>
-        <div class="flex flex-wrap gap-3">
-          <button type="button" class="button-primary px-6" (click)="publish()">Publish Listing</button>
-        </div>
+        <button type="button" class="button-primary px-7" (click)="publish()">
+          <app-icon name="upload" [size]="16" className="text-black" />
+          Publish Listing
+        </button>
       </div>
 
-      <div class="grid gap-6 xl:grid-cols-[1fr,320px]">
-        <section class="panel-dark space-y-8 p-6 sm:p-8" [formGroup]="listingForm">
-          <section class="space-y-5">
-            <div>
-              <h2 class="text-2xl font-semibold text-white">1. Product Images</h2>
-              <p class="mt-2 text-sm text-zinc-400">Add up to 5 images. The first image will be your cover photo.</p>
+      <div class="create-listing-grid">
+        <!-- ── Main form ─────────────────────────────── -->
+        <div class="panel-dark space-y-0 overflow-hidden" [formGroup]="listingForm">
+          <!-- 1. Images -->
+          <div class="space-y-5 p-6 sm:p-8">
+            <div class="flex items-center gap-3">
+              <span
+                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white"
+                >1</span
+              >
+              <div>
+                <h2 class="text-lg font-semibold text-white">Product Images</h2>
+                <p class="text-sm text-zinc-500">First image is the cover. Up to 5 total.</p>
+              </div>
             </div>
 
-            <input #fileInput type="file" class="hidden" accept="image/*" multiple (change)="onFilesSelected($event)" />
+            <input
+              #fileInput
+              type="file"
+              class="hidden"
+              accept="image/*"
+              multiple
+              (change)="onFilesSelected($event)"
+            />
 
-            <div class="grid gap-4 md:grid-cols-[180px,repeat(5,minmax(0,1fr))]">
+            <div class="flex flex-wrap gap-3">
+              <!-- Upload trigger -->
               <button
                 type="button"
-                class="flex aspect-square flex-col items-center justify-center rounded-[24px] border border-dashed border-white/14 bg-white/[0.02] text-zinc-300 hover:border-white/20 w-24"
+                class="listing-thumb-slot flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.02] text-zinc-400 transition hover:border-white/30 hover:bg-white/[0.04] hover:text-white"
                 (click)="fileInput.click()"
               >
-                <app-icon name="upload" [size]="22" className="text-zinc-200" />
-                <span class="mt-4 text-base font-semibold">Upload Images</span>
-                <span class="mt-1 text-sm text-zinc-500">PNG, JPG, WEBP</span>
+                <app-icon name="upload" [size]="20" className="text-zinc-300" />
+                <span class="text-xs font-medium leading-tight text-center"
+                  >Upload<br />Images</span
+                >
               </button>
 
+              <!-- Uploaded images -->
               @for (image of uploadedImages(); track image; let index = $index) {
-                <div class="relative overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03] w-24">
+                <div
+                  class="listing-thumb-slot relative overflow-hidden rounded-xl border border-white/10"
+                >
                   @if (index === 0) {
-                    <span class="absolute left-3 top-3 z-10 rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">Cover</span>
+                    <span
+                      class="absolute left-2 top-2 z-10 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-black"
+                      >Cover</span
+                    >
                   }
-                  <button type="button" class="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50" (click)="removeImage(index)">
-                    <app-icon name="x" [size]="16" className="text-white" />
+                  <button
+                    type="button"
+                    class="absolute right-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 backdrop-blur-sm transition hover:bg-black/80"
+                    (click)="removeImage(index)"
+                  >
+                    <app-icon name="x" [size]="12" className="text-white" />
                   </button>
-                  <img class="aspect-square w-full object-cover" [src]="image" alt="Listing image" />
+                  <img class="h-full w-full object-cover" [src]="image" alt="Listing image" />
                 </div>
               }
 
-              @if (uploadedImages().length < 5) {
+              <!-- Add more slot -->
+              @if (uploadedImages().length > 0 && uploadedImages().length < 5) {
                 <button
                   type="button"
-                  class="flex aspect-square items-center justify-center rounded-[24px] border border-dashed border-white/14 bg-white/[0.02] text-zinc-300 w-24"
+                  class="listing-thumb-slot flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-white/14 bg-white/[0.02] text-zinc-500 transition hover:border-white/22 hover:text-zinc-300"
                   (click)="fileInput.click()"
                 >
-                  <div class="text-center">
-                    <app-icon name="plus" [size]="20" className="mx-auto text-zinc-200" />
-                    <p class="mt-3 text-sm">Add more</p>
-                  </div>
+                  <app-icon name="plus" [size]="18" className="text-zinc-400" />
+                  <span class="text-xs">Add more</span>
                 </button>
               }
             </div>
-          </section>
+          </div>
 
-          <section class="space-y-5 border-t border-white/8 pt-8">
-            <div>
-              <h2 class="text-2xl font-semibold text-white">2. Product Information</h2>
+          <div class="border-t border-white/8"></div>
+
+          <!-- 2. Product Information -->
+          <div class="space-y-4 p-6 sm:p-8">
+            <div class="flex items-center gap-3">
+              <span
+                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white"
+                >2</span
+              >
+              <h2 class="text-lg font-semibold text-white">Product Information</h2>
             </div>
+            <input class="input-dark" formControlName="title" placeholder="Product title" />
+            <select class="select-dark" formControlName="categoryId">
+              <option value="">Select a category</option>
+              @for (option of categoryOptions(); track option.category.id) {
+                <option [value]="option.category.id">
+                  {{ categoryOptionLabel(option.depth, option.category.name) }}
+                </option>
+              }
+            </select>
+          </div>
 
-            <div class="space-y-4">
-              <input class="input-dark" formControlName="title" placeholder="Product Title" />
-              <div class="grid gap-4 md:grid-cols-2">
-                <select class="select-dark" formControlName="categoryId">
-                  <option value="">Select category</option>
-                  @for (option of categoryOptions(); track option.category.id) {
-                    <option [value]="option.category.id">{{ categoryOptionLabel(option.depth, option.category.name) }}</option>
-                  }
-                </select>
+          <div class="border-t border-white/8"></div>
+
+          <!-- 3. Pricing & Inventory -->
+          <div class="space-y-4 p-6 sm:p-8">
+            <div class="flex items-center gap-3">
+              <span
+                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white"
+                >3</span
+              >
+              <h2 class="text-lg font-semibold text-white">Pricing & Inventory</h2>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div class="space-y-1.5">
+                <label class="text-xs font-medium text-zinc-500">Price (TND)</label>
+                <input
+                  class="input-dark"
+                  formControlName="price"
+                  type="number"
+                  placeholder="0.00"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-xs font-medium text-zinc-500">Compare at price</label>
+                <input
+                  class="input-dark"
+                  formControlName="compareAtPrice"
+                  type="number"
+                  placeholder="0.00"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-xs font-medium text-zinc-500">Stock quantity</label>
+                <input
+                  class="input-dark"
+                  formControlName="quantity"
+                  type="number"
+                  placeholder="1"
+                />
               </div>
             </div>
-          </section>
+          </div>
 
-          <section class="space-y-5 border-t border-white/8 pt-8">
-            <div>
-              <h2 class="text-2xl font-semibold text-white">3. Pricing & Inventory</h2>
-            </div>
+          <div class="border-t border-white/8"></div>
 
-            <div class="grid gap-4 md:grid-cols-3">
-              <input class="input-dark" formControlName="price" type="number" placeholder="Price" />
-              <input class="input-dark" formControlName="compareAtPrice" type="number" placeholder="Compare at price" />
-              <input class="input-dark" formControlName="quantity" type="number" placeholder="Quantity" />
+          <!-- 4. Description -->
+          <div class="space-y-4 p-6 sm:p-8">
+            <div class="flex items-center gap-3">
+              <span
+                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white"
+                >4</span
+              >
+              <h2 class="text-lg font-semibold text-white">Product Description</h2>
             </div>
-          </section>
-
-          <section class="space-y-5 border-t border-white/8 pt-8">
-            <div>
-              <h2 class="text-2xl font-semibold text-white">4. Product Details</h2>
-            </div>
-            <div class="rounded-[24px] border border-white/8 bg-white/[0.03]">
-              <textarea class="textarea-dark border-0 bg-transparent" formControlName="description" placeholder="Write a detailed description about your product..."></textarea>
-            </div>
-          </section>
+            <textarea
+              class="textarea-dark"
+              formControlName="description"
+              placeholder="Write a detailed description — materials, condition, key features..."
+            ></textarea>
+          </div>
 
           @if (message()) {
-            <p class="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-zinc-300">
-              {{ message() }}
-            </p>
-          }
-        </section>
-
-        <aside class="space-y-5">
-          <app-panel-card title="Listing Preview" subtitle="This is how your listing will appear to buyers." className="sticky top-28">
-            <div class="overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.03]">
-              @if (previewImage()) {
-                <img class="aspect-square w-full object-cover" [src]="previewImage()" [alt]="listingForm.controls.title.value || 'Listing preview'" />
-              } @else {
-                <div class="flex aspect-square w-full items-center justify-center text-zinc-500">
-                  <app-icon name="image" [size]="28" className="text-zinc-500" />
-                </div>
-              }
-            </div>
-            <h3 class="mt-5 text-2xl font-semibold text-white">{{ listingForm.controls.title.value || 'Your listing title' }}</h3>
-            <div class="mt-3 flex items-center gap-3">
-              <p class="text-4xl font-semibold tracking-tight text-white">
-                {{ previewPrice() | currency: 'USD' : 'symbol' : '1.2-2' }}
+            <div class="border-t border-white/8 px-6 py-4 sm:px-8">
+              <p
+                class="rounded-lg border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-zinc-300"
+              >
+                {{ message() }}
               </p>
-              @if (compareAtPrice() > previewPrice()) {
-                <p class="text-lg text-zinc-500 line-through">
-                  {{ compareAtPrice() | currency: 'USD' : 'symbol' : '1.2-2' }}
-                </p>
-              }
             </div>
-            <p class="mt-2 text-sm text-emerald-300">In stock</p>
-          </app-panel-card>
+          }
+        </div>
 
-          <app-panel-card title="Tips for a great listing">
-            <div class="space-y-4">
-              @for (tip of tips; track tip.title) {
-                <div class="flex items-start gap-4">
-                  <app-icon name="circle-check" [size]="18" className="mt-1 text-emerald-300" />
-                  <div>
-                    <p class="text-lg font-semibold text-white">{{ tip.title }}</p>
-                    <p class="mt-1 text-sm leading-6 text-zinc-400">{{ tip.body }}</p>
-                  </div>
+        <!-- ── Sidebar ─────────────────────────────── -->
+        <aside class="create-listing-aside space-y-4">
+          <!-- Preview card -->
+          <div class="panel-dark overflow-hidden">
+            <div class="border-b border-white/8 px-5 py-4">
+              <p class="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                Live Preview
+              </p>
+            </div>
+
+            <!-- Image preview -->
+            <div
+              class="sf-product-media-well relative aspect-[4/3] w-full overflow-hidden border-b border-white/8"
+            >
+              @if (previewImage()) {
+                <img
+                  class="sf-product-detail-image"
+                  [src]="previewImage()"
+                  [alt]="listingForm.controls.title.value || 'Preview'"
+                />
+              } @else {
+                <div class="flex h-full flex-col items-center justify-center gap-2 text-zinc-600">
+                  <app-icon name="image" [size]="28" className="text-zinc-600" />
+                  <p class="text-xs">No image yet</p>
                 </div>
               }
             </div>
-          </app-panel-card>
+
+            <!-- Preview info -->
+            <div class="space-y-2 p-5">
+              <p class="text-base font-semibold text-white leading-snug">
+                {{ listingForm.controls.title.value || 'Your listing title' }}
+              </p>
+              @if (previewPrice() > 0) {
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-bold tracking-tight text-white">{{
+                    previewPrice() | tndCurrency
+                  }}</span>
+                  @if (compareAtPrice() > previewPrice()) {
+                    <span class="text-sm text-zinc-500 line-through">{{
+                      compareAtPrice() | tndCurrency
+                    }}</span>
+                  }
+                </div>
+              } @else {
+                <p class="text-sm text-zinc-600">Price will appear here</p>
+              }
+              <p class="flex items-center gap-1.5 text-xs text-emerald-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                In stock
+              </p>
+            </div>
+          </div>
+
+          <!-- Tips card -->
+          <div class="panel-dark p-5 space-y-4">
+            <p class="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+              Tips for a great listing
+            </p>
+            @for (tip of tips; track tip.title) {
+              <div class="flex items-start gap-3">
+                <app-icon
+                  name="circle-check"
+                  [size]="16"
+                  className="mt-0.5 shrink-0 text-emerald-400"
+                />
+                <div>
+                  <p class="text-sm font-semibold text-white">{{ tip.title }}</p>
+                  <p class="mt-0.5 text-xs leading-5 text-zinc-500">{{ tip.body }}</p>
+                </div>
+              </div>
+            }
+          </div>
         </aside>
       </div>
     </div>
-  `
+  `,
 })
 export class CreateListingPageComponent {
   private readonly fb = inject(FormBuilder);
@@ -179,33 +323,39 @@ export class CreateListingPageComponent {
     price: [0, Validators.required],
     compareAtPrice: [0],
     quantity: [1, Validators.required],
-    description: ['', Validators.required]
+    description: ['', Validators.required],
   });
 
   readonly categories = toSignal(this.categoriesService.getCategories(), { initialValue: [] });
-  readonly flatCategories = computed(() => this.categoriesService.flattenCategories(this.categories()));
-  readonly categoryOptions = computed(() => this.categoriesService.flattenCategoriesWithDepth(this.categories()));
+  readonly flatCategories = computed(() =>
+    this.categoriesService.flattenCategories(this.categories()),
+  );
+  readonly categoryOptions = computed(() =>
+    this.categoriesService.flattenCategoriesWithDepth(this.categories()),
+  );
   readonly previewImage = computed(() => this.uploadedImages()[0] ?? '');
   readonly previewPrice = computed(() => Number(this.listingForm.controls.price.value) || 0);
-  readonly compareAtPrice = computed(() => Number(this.listingForm.controls.compareAtPrice.value) || 0);
+  readonly compareAtPrice = computed(
+    () => Number(this.listingForm.controls.compareAtPrice.value) || 0,
+  );
 
   readonly tips = [
     {
       title: 'Use high-quality photos',
-      body: 'Clear images help buyers trust your listing faster.'
+      body: 'Clear images help buyers trust your listing faster.',
     },
     {
       title: 'Write a detailed description',
-      body: 'Include key features, materials, and condition notes.'
+      body: 'Include key features, materials, and condition notes.',
     },
     {
       title: 'Set a competitive price',
-      body: 'Check comparable listings and stay realistic.'
+      body: 'Check comparable listings and stay realistic.',
     },
     {
       title: 'Choose the right category',
-      body: 'Help buyers find your item more easily.'
-    }
+      body: 'Help buyers find your item more easily.',
+    },
   ];
 
   constructor() {
@@ -243,7 +393,9 @@ export class CreateListingPageComponent {
   }
 
   removeImage(index: number): void {
-    this.uploadedImages.update((images) => images.filter((_, currentIndex) => currentIndex !== index));
+    this.uploadedImages.update((images) =>
+      images.filter((_, currentIndex) => currentIndex !== index),
+    );
   }
 
   publish(): void {
@@ -261,17 +413,17 @@ export class CreateListingPageComponent {
     const regularPrice = compareAtPrice > actualPrice ? compareAtPrice : actualPrice;
     const promoPrice = compareAtPrice > actualPrice ? actualPrice : null;
 
-      this.catalog
-        .createProduct({
-          name: value.title,
-          description: value.description,
-          price: regularPrice,
-          promoPrice,
-          stock: Number(value.quantity),
-          categoryIds: [Number(value.categoryId)],
-          imageUrls: this.uploadedImages(),
-          variants: []
-        })
+    this.catalog
+      .createProduct({
+        name: value.title,
+        description: value.description,
+        price: regularPrice,
+        promoPrice,
+        stock: Number(value.quantity),
+        categoryIds: [Number(value.categoryId)],
+        imageUrls: this.uploadedImages(),
+        variants: [],
+      })
       .subscribe({
         next: () => {
           this.message.set('Listing published successfully.');
@@ -279,7 +431,7 @@ export class CreateListingPageComponent {
         },
         error: (error: unknown) => {
           this.message.set(this.getPublishErrorMessage(error));
-        }
+        },
       });
   }
 

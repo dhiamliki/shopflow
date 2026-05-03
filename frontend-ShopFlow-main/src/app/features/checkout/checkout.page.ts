@@ -1,10 +1,10 @@
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { finalize, map, of, switchMap } from 'rxjs';
-import { AddressPayload, Product } from '../../core/models/commerce.models';
+import { AddressPayload, PaymentMethod, Product } from '../../core/models/commerce.models';
 import { AddressService } from '../../core/services/address.service';
 import { CatalogService } from '../../core/services/catalog.service';
 import { CartService } from '../../core/services/cart.service';
@@ -13,13 +13,16 @@ import { SessionService } from '../../core/services/session.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
+
+const TUNISIA = 'Tunisia';
 
 @Component({
   selector: 'app-checkout-page',
   standalone: true,
   imports: [
     CommonModule,
-    CurrencyPipe,
+    TndCurrencyPipe,
     ReactiveFormsModule,
     RouterLink,
     EmptyStateComponent,
@@ -60,7 +63,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
             <div class="space-y-3">
               <h1 class="font-display text-5xl font-semibold tracking-[-0.05em] text-white">Checkout</h1>
               <p class="text-lg text-zinc-400">
-                Complete your order with a shipping address.
+                Complete your order with a shipping address and payment method.
               </p>
             </div>
 
@@ -76,7 +79,36 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                   <input class="input-dark" formControlName="apartment" placeholder="Apartment, suite, etc. (optional)" />
                   <input class="input-dark" formControlName="city" placeholder="City" />
                   <input class="input-dark" formControlName="postalCode" placeholder="ZIP / Postal Code" />
-                  <input class="input-dark" formControlName="country" placeholder="Country" />
+                  <select class="select-dark" formControlName="country" aria-label="Country">
+                    <option [value]="TUNISIA">{{ TUNISIA }}</option>
+                  </select>
+                </div>
+              </section>
+
+              <section class="space-y-4 border-t border-white/8 pt-7">
+                <div class="flex items-center gap-3">
+                  <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-sm font-semibold text-white">2</span>
+                  <h2 class="text-base font-semibold text-white">Payment Method</h2>
+                </div>
+
+                <div class="space-y-3">
+                  @for (method of paymentMethods; track method.value) {
+                    <label
+                      class="flex cursor-pointer items-start gap-4 rounded-md border p-4 transition"
+                      [ngClass]="checkoutForm.controls.paymentMethod.value === method.value ? 'border-emerald-400/35 bg-emerald-500/10' : 'border-white/10 bg-white/[0.03] hover:border-white/18'"
+                    >
+                      <input
+                        type="radio"
+                        class="mt-1 accent-emerald-400"
+                        formControlName="paymentMethod"
+                        [value]="method.value"
+                      />
+                      <span>
+                        <span class="block text-base font-semibold text-white">{{ method.label }}</span>
+                        <span class="mt-1 block text-sm leading-6 text-zinc-400">{{ method.description }}</span>
+                      </span>
+                    </label>
+                  }
                 </div>
               </section>
 
@@ -87,7 +119,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               }
 
               <button type="button" class="button-primary w-full text-base" (click)="placeOrder()" [disabled]="submitting()">
-                Place Order <span>&bull;</span> <strong>{{ cartService.cart().totalTtc | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+                Place Order <span>&bull;</span> <strong>{{ cartService.cart().totalTtc | tndCurrency }}</strong>
                 <app-icon name="lock" [size]="16" className="ml-auto text-black" />
               </button>
             </div>
@@ -98,12 +130,12 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               <div class="space-y-4">
                 @for (item of enrichedItems(); track item.id) {
                   <div class="flex items-center gap-4">
-                    <img class="h-20 w-20 rounded-[18px] object-cover" [src]="item.product.imageUrls[0]" [alt]="item.productName" />
+                    <img class="h-[76px] w-[76px] shrink-0 rounded-md object-cover sm:h-[88px] sm:w-[88px]" [src]="item.product.imageUrls[0]" [alt]="item.productName" />
                     <div class="min-w-0 flex-1">
                       <p class="line-clamp-2 text-base font-semibold text-white">{{ item.productName }}</p>
                       <p class="mt-1 text-sm text-zinc-400">{{ item.variantLabel || 'Standard' }}</p>
                     </div>
-                    <p class="text-lg font-semibold text-white">{{ item.totalPrice | currency: 'USD' : 'symbol' : '1.2-2' }}</p>
+                    <p class="shrink-0 text-base font-semibold text-white">{{ item.totalPrice | tndCurrency }}</p>
                   </div>
                 }
               </div>
@@ -113,18 +145,18 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               <div class="space-y-4 text-base">
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-400">Subtotal</span>
-                  <span class="text-white">{{ cartService.cart().subtotal | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
+                  <span class="text-white">{{ cartService.cart().subtotal | tndCurrency }}</span>
                 </div>
                 @if (cartService.cart().discount > 0) {
                   <div class="flex items-center justify-between">
                     <span class="text-zinc-400">Discount</span>
-                    <span class="text-emerald-300">-{{ cartService.cart().discount | currency: 'USD' : 'symbol' : '1.2-2' }}</span>
+                    <span class="text-emerald-300">-{{ cartService.cart().discount | tndCurrency }}</span>
                   </div>
                 }
                 <div class="flex items-center justify-between">
                   <span class="text-zinc-400">Shipping</span>
                   <span class="text-emerald-300">
-                    {{ cartService.cart().shippingFee === 0 ? 'Free' : (cartService.cart().shippingFee | currency: 'USD' : 'symbol' : '1.2-2') }}
+                    {{ cartService.cart().shippingFee === 0 ? 'Free' : (cartService.cart().shippingFee | tndCurrency) }}
                   </span>
                 </div>
               </div>
@@ -134,7 +166,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
               <div class="flex items-center justify-between">
                 <span class="text-2xl font-semibold text-white">Total</span>
                 <span class="text-4xl font-semibold tracking-tight text-white">
-                  {{ cartService.cart().totalTtc | currency: 'USD' : 'symbol' : '1.2-2' }}
+                  {{ cartService.cart().totalTtc | tndCurrency }}
                 </span>
               </div>
             </app-panel-card>
@@ -156,13 +188,22 @@ export class CheckoutPageComponent {
   readonly submitting = signal(false);
   readonly orderError = signal('');
   readonly selectedAddressId = signal<number | null>(null);
+  readonly TUNISIA = TUNISIA;
+  readonly paymentMethods: Array<{ value: PaymentMethod; label: string; description: string }> = [
+    {
+      value: 'PAY_ON_DELIVERY',
+      label: 'Pay in person when delivery arrives',
+      description: 'Pay the delivery person when your order arrives. No online card payment is collected.'
+    }
+  ];
 
   readonly checkoutForm = this.fb.nonNullable.group({
     street: ['', Validators.required],
     apartment: [''],
     city: ['', Validators.required],
     postalCode: ['', Validators.required],
-    country: ['United States', Validators.required]
+    country: [TUNISIA, Validators.required],
+    paymentMethod: ['PAY_ON_DELIVERY' as PaymentMethod, Validators.required]
   });
 
   readonly enrichedItems = toSignal(
@@ -236,7 +277,7 @@ export class CheckoutPageComponent {
 
     addressId$
       .pipe(
-        switchMap((addressId) => this.ordersService.placeOrder(addressId)),
+        switchMap((addressId) => this.ordersService.placeOrder(addressId, value.paymentMethod)),
         finalize(() => this.submitting.set(false))
       )
       .subscribe({

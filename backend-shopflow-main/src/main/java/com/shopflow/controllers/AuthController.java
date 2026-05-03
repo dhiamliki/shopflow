@@ -5,6 +5,7 @@ import com.shopflow.dto.common.MessageResponse;
 import com.shopflow.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,12 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request.refreshToken()));
+    }
+
+    @PostMapping("/update-role")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AuthResponse> updateToSeller(@Valid @RequestBody UpdateToSellerRequest request) {
+        return ResponseEntity.ok(authService.updateToSeller(request));
     }
 
     @PostMapping("/logout")

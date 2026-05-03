@@ -33,8 +33,15 @@ import { IconComponent } from '../../shared/components/icon.component';
             <label class="block space-y-3">
               <span class="text-sm font-semibold text-zinc-300">Password</span>
               <span class="relative block">
-                <input class="input-dark pr-12" type="password" formControlName="password" placeholder="Enter your password" />
-                <app-icon name="eye" [size]="17" className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <input class="input-dark pr-12" [type]="showPassword() ? 'text' : 'password'" formControlName="password" placeholder="Enter your password" />
+                <button
+                  type="button"
+                  (click)="showPassword.set(!showPassword())"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                  tabindex="-1"
+                >
+                  <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="17" className="w-4 h-4" />
+                </button>
               </span>
             </label>
 
@@ -74,6 +81,7 @@ export class LoginPageComponent {
 
   readonly loginPending = signal(false);
   readonly loginError = signal('');
+  readonly showPassword = signal(false);
 
   readonly loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

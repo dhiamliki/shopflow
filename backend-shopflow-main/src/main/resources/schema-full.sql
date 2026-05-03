@@ -109,6 +109,7 @@ CREATE TABLE `orders` (
   `discount_amount` double DEFAULT NULL,
   `is_new` bit(1) NOT NULL,
   `order_number` varchar(255) NOT NULL,
+  `payment_method` enum('PAY_ON_DELIVERY') NOT NULL,
   `refund_amount` double DEFAULT NULL,
   `refunded` bit(1) NOT NULL,
   `shipping_fee` double DEFAULT NULL,

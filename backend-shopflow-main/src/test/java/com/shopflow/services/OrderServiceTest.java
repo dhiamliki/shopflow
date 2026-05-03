@@ -10,6 +10,7 @@ import com.shopflow.repositories.OrderRepository;
 import com.shopflow.repositories.UserRepository;
 import com.shopflow.utils.OrderNumberGenerator;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -48,6 +49,11 @@ class OrderServiceTest {
         user = User.builder().id(3L).email("customer@shopflow.com").role(Role.CUSTOMER).firstName("Liam").lastName("Customer").build();
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     void checkoutShouldFailForEmptyCart() {
         SecurityContext context = mock(SecurityContext.class);
@@ -56,7 +62,7 @@ class OrderServiceTest {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(cartService.getUserCart()).thenReturn(Cart.builder().user(user).items(List.of()).build());
 
-        assertThatThrownBy(() -> orderService.checkout(1L))
+        assertThatThrownBy(() -> orderService.checkout(1L, PaymentMethod.PAY_ON_DELIVERY))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("empty cart");
     }
@@ -83,11 +89,12 @@ class OrderServiceTest {
         when(commerceMapper.toOrderItemResponse(any(OrderItem.class)))
                 .thenReturn(new OrderItemResponse(1L, "Headphones", null, null, 2, 100.0, 200.0));
 
-        OrderResponse response = orderService.checkout(1L);
+        OrderResponse response = orderService.checkout(1L, PaymentMethod.PAY_ON_DELIVERY);
 
         verify(cartService).clearCart(cart);
         verify(couponService).markCouponUsed(null);
         assertThat(response.orderNumber()).isEqualTo("ORD-2026-00001");
+        assertThat(response.paymentMethod()).isEqualTo(PaymentMethod.PAY_ON_DELIVERY);
         assertThat(response.totalAmount()).isEqualTo(200.0);
     }
 }

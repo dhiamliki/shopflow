@@ -82,10 +82,7 @@ export class AuthService {
   }
 
   updateToSeller(payload: UpdateToSellerRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${API_BASE_URL}/api/auth/update-role`, {
-      ...payload,
-      role: 'SELLER'
-    }).pipe(
+    return this.http.post<AuthResponse>(`${API_BASE_URL}/api/auth/update-role`, payload).pipe(
       tap((response) => this.session.setSession(response))
     );
   }

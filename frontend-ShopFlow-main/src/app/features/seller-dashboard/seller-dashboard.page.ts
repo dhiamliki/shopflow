@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SellerDashboard } from '../../core/models/dashboard.models';
@@ -7,11 +7,13 @@ import { SessionService } from '../../core/services/session.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon.component';
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
+import { formatTndCurrency } from '../../shared/utils/currency';
 
 @Component({
   selector: 'app-seller-dashboard-page',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, IconComponent, PanelCardComponent, EmptyStateComponent],
+  imports: [CommonModule, TndCurrencyPipe, IconComponent, PanelCardComponent, EmptyStateComponent],
   template: `
     <div class="grid gap-6 xl:grid-cols-[1fr,360px]">
       <section class="space-y-5">
@@ -80,7 +82,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                       'bg-amber-500/15 text-amber-300': order.status === 'PENDING' || order.status === 'PROCESSING',
                       'bg-blue-500/15 text-blue-300': order.status === 'SHIPPED'
                     }">{{ order.status }}</p>
-                    <p class="mt-2 text-lg font-semibold text-white">{{ order.totalAmount | currency:'USD':'symbol':'1.2-2' }}</p>
+                    <p class="mt-2 text-lg font-semibold text-white">{{ order.totalAmount | tndCurrency }}</p>
                   </div>
                 </div>
               }
@@ -101,7 +103,7 @@ import { PanelCardComponent } from '../../shared/components/panel-card/panel-car
                 <div class="rounded-md border border-white/8 bg-white/[0.03] p-4">
                   <div class="flex items-start justify-between gap-4">
                     <p class="line-clamp-2 text-base font-semibold text-white">{{ product.productName }}</p>
-                    <p class="shrink-0 text-sm font-semibold text-white">{{ product.revenue | currency:'USD':'symbol':'1.2-2' }}</p>
+                    <p class="shrink-0 text-sm font-semibold text-white">{{ product.revenue | tndCurrency }}</p>
                   </div>
                   <p class="mt-2 text-sm text-zinc-500">{{ product.quantitySold }} sold</p>
                 </div>
@@ -133,7 +135,7 @@ export class SellerDashboardPageComponent {
     {
       icon: 'circle-dollar',
       label: 'Revenue',
-      value: (this.sellerDashboard()?.totalRevenue ?? 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+      value: formatTndCurrency(this.sellerDashboard()?.totalRevenue ?? 0),
       delta: ''
     },
     {
@@ -162,10 +164,10 @@ export class SellerDashboardPageComponent {
     const dashboard = this.sellerDashboard() ?? EMPTY_SELLER_DASHBOARD;
     const averageOrder = dashboard.totalOrders > 0 ? dashboard.totalRevenue / dashboard.totalOrders : 0;
     return [
-      { label: 'Revenue', value: dashboard.totalRevenue.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) },
+      { label: 'Revenue', value: formatTndCurrency(dashboard.totalRevenue) },
       { label: 'Orders', value: dashboard.totalOrders },
       { label: 'Pending Orders', value: dashboard.pendingOrders },
-      { label: 'Average Order', value: averageOrder.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) }
+      { label: 'Average Order', value: formatTndCurrency(averageOrder) }
     ];
   });
 

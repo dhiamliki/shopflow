@@ -32,11 +32,14 @@ public class OrderService {
     private final OrderNumberGenerator orderNumberGenerator;
 
     @Transactional
-    public OrderResponse checkout(Long addressId) {
+    public OrderResponse checkout(Long addressId, PaymentMethod paymentMethod) {
         User currentUser = currentUser();
         Cart cart = cartService.getUserCart();
         if (cart.getItems().isEmpty()) {
             throw new BadRequestException("Cannot checkout with an empty cart");
+        }
+        if (paymentMethod == null) {
+            throw new BadRequestException("Payment method is required");
         }
 
         Address shippingAddress = addressRepository.findByIdAndUser(addressId, currentUser)
@@ -54,6 +57,7 @@ public class OrderService {
                 .orderNumber(orderNumberGenerator.next())
                 .customer(currentUser)
                 .status(OrderStatus.PENDING)
+                .paymentMethod(paymentMethod)
                 .subtotal(subtotal)
                 .discountAmount(discount)
                 .shippingFee(shippingFee)
@@ -100,8 +104,8 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderResponse placeOrder(Long addressId) {
-        return checkout(addressId);
+    public OrderResponse placeOrder(Long addressId, PaymentMethod paymentMethod) {
+        return checkout(addressId, paymentMethod);
     }
 
     @Transactional(readOnly = true)
@@ -198,6 +202,7 @@ public class OrderService {
                 order.getId(),
                 order.getOrderNumber(),
                 order.getStatus(),
+                order.getPaymentMethod(),
                 order.getSubtotal(),
                 order.getDiscountAmount(),
                 order.getShippingFee(),

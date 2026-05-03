@@ -71,22 +71,36 @@ const STRONG_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).+$/;
             </div>
           }
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block space-y-3">
-              <span class="text-sm font-semibold text-zinc-300">Password</span>
-              <span class="relative block">
-                <input class="input-dark pr-12" type="password" formControlName="password" placeholder="Create a password" />
-                <app-icon name="eye" [size]="17" className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-              </span>
-            </label>
-            <label class="block space-y-3">
-              <span class="text-sm font-semibold text-zinc-300">Confirm password</span>
-              <span class="relative block">
-                <input class="input-dark pr-12" type="password" formControlName="confirmPassword" placeholder="Confirm your password" />
-                <app-icon name="eye" [size]="17" className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-              </span>
-            </label>
-          </div>
+           <div class="grid gap-4 sm:grid-cols-2">
+             <label class="block space-y-3">
+               <span class="text-sm font-semibold text-zinc-300">Password</span>
+               <span class="relative block">
+                 <input class="input-dark pr-12" [type]="showPassword() ? 'text' : 'password'" formControlName="password" placeholder="Create a password" />
+                 <button
+                   type="button"
+                   (click)="showPassword.set(!showPassword())"
+                   class="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                   tabindex="-1"
+                 >
+                   <app-icon [name]="showPassword() ? 'eye-off' : 'eye'" [size]="17" className="w-4 h-4" />
+                 </button>
+               </span>
+             </label>
+             <label class="block space-y-3">
+               <span class="text-sm font-semibold text-zinc-300">Confirm password</span>
+               <span class="relative block">
+                 <input class="input-dark pr-12" [type]="showConfirmPassword() ? 'text' : 'password'" formControlName="confirmPassword" placeholder="Confirm your password" />
+                 <button
+                   type="button"
+                   (click)="showConfirmPassword.set(!showConfirmPassword())"
+                   class="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                   tabindex="-1"
+                 >
+                   <app-icon [name]="showConfirmPassword() ? 'eye-off' : 'eye'" [size]="17" className="w-4 h-4" />
+                 </button>
+               </span>
+             </label>
+           </div>
 
           <label class="inline-flex items-center gap-3 text-sm text-zinc-300">
             <input type="checkbox" class="accent-emerald-400" formControlName="agree" />
@@ -127,6 +141,8 @@ export class RegisterPageComponent {
   readonly signupPending = signal(false);
   readonly signupError = signal('');
   readonly role = signal<UserRole>('CUSTOMER');
+  readonly showPassword = signal(false);
+  readonly showConfirmPassword = signal(false);
 
   readonly registerForm = this.fb.nonNullable.group({
     firstName: ['', Validators.required],

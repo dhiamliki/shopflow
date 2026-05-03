@@ -45,6 +45,15 @@ public class AuthService {
             throw new BadRequestException("ADMIN registration is not allowed");
         }
 
+        String shopName = request.shopName() == null ? "" : request.shopName().trim();
+        String shopDescription = request.shopDescription() == null ? null : request.shopDescription().trim();
+        if (shopDescription != null && shopDescription.isBlank()) {
+            shopDescription = null;
+        }
+        if (role == Role.SELLER && shopName.isBlank()) {
+            throw new BadRequestException("Please enter your shop name.");
+        }
+
         User user = User.builder()
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
@@ -59,8 +68,8 @@ public class AuthService {
         if (role == Role.SELLER) {
             sellerProfileRepository.save(SellerProfile.builder()
                     .user(savedUser)
-                    .shopName(request.shopName() == null ? savedUser.getFirstName() + " Store" : request.shopName())
-                    .description(request.shopDescription())
+                    .shopName(shopName)
+                    .description(shopDescription)
                     .logoUrl(request.shopLogoUrl())
                     .build());
         }
@@ -100,6 +109,34 @@ public class AuthService {
         return new AuthResponse(accessToken, newRefreshToken, userMapper.toResponse(user));
     }
 
+    public AuthResponse updateToSeller(UpdateToSellerRequest request) {
+        User user = currentUser();
+        if (user.getRole() == Role.ADMIN) {
+            throw new BadRequestException("ADMIN accounts cannot use seller onboarding");
+        }
+
+        String shopName = request.shopName() == null ? "" : request.shopName().trim();
+        if (shopName.isBlank()) {
+            throw new BadRequestException("Please enter your shop name.");
+        }
+
+        String description = request.shopDescription() == null ? null : request.shopDescription().trim();
+        if (description != null && description.isBlank()) {
+            description = null;
+        }
+
+        user.setRole(Role.SELLER);
+        User savedUser = userRepository.save(user);
+
+        SellerProfile profile = sellerProfileRepository.findByUser(savedUser)
+                .orElseGet(() -> SellerProfile.builder().user(savedUser).build());
+        profile.setShopName(shopName);
+        profile.setDescription(description);
+        sellerProfileRepository.save(profile);
+
+        return buildAuthResponse(savedUser);
+    }
+
     public void logout(String refreshTokenValue) {
         if (refreshTokenValue != null && !refreshTokenValue.isBlank()) {
             refreshTokenRepository.findByToken(refreshTokenValue).ifPresent(token -> {
@@ -119,6 +156,15 @@ public class AuthService {
         String refreshToken = jwtService.generateRefreshToken(user);
         saveRefreshToken(user, refreshToken);
         return new AuthResponse(accessToken, refreshToken, userMapper.toResponse(user));
+    }
+
+    private User currentUser() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new BadRequestException("Authentication is required");
+        }
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new BadRequestException("Authenticated user not found"));
     }
 
     private void revokeActiveTokens(User user) {

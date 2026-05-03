@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -11,6 +11,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { PanelCardComponent } from '../../shared/components/panel-card/panel-card.component';
 import { SectionHeadingComponent } from '../../shared/components/section-heading/section-heading.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
 
 type OrderCard = Order & { leadProduct: Product | null };
 
@@ -19,7 +20,7 @@ type OrderCard = Order & { leadProduct: Product | null };
   standalone: true,
   imports: [
     CommonModule,
-    CurrencyPipe,
+    TndCurrencyPipe,
     RouterLink,
     PanelCardComponent,
     SectionHeadingComponent,
@@ -50,9 +51,9 @@ type OrderCard = Order & { leadProduct: Product | null };
           <div class="space-y-4">
             @if (filteredOrders().length) {
               @for (order of filteredOrders(); track order.id) {
-                <article class="panel-dark grid gap-5 p-5 xl:grid-cols-[130px,1fr,260px,160px] xl:items-center">
+                <article class="panel-dark grid gap-5 p-5 xl:grid-cols-[96px,1fr,260px,160px] xl:items-center">
                   <img
-                    class="h-[130px] w-[130px] rounded-[22px] object-cover"
+                    class="h-20 w-20 rounded-md object-cover sm:h-24 sm:w-24"
                     [src]="order.leadProduct?.imageUrls?.[0]"
                     [alt]="order.items[0]?.productName || order.orderNumber"
                   />
@@ -71,8 +72,9 @@ type OrderCard = Order & { leadProduct: Product | null };
                       </p>
                     </div>
                     <p class="text-2xl font-semibold text-white">
-                      {{ order.totalAmount | currency: 'USD' : 'symbol' : '1.2-2' }}
+                      {{ order.totalAmount | tndCurrency }}
                     </p>
+                    <p class="text-sm text-zinc-400">{{ paymentMethodLabel(order.paymentMethod) }}</p>
                   </div>
                   <div class="space-y-4">
                     <app-status-badge [status]="order.status" />
@@ -227,5 +229,11 @@ export class OrdersPageComponent {
       default:
         return 'This order has been cancelled';
     }
+  }
+
+  paymentMethodLabel(paymentMethod: string | null | undefined): string {
+    return paymentMethod === 'PAY_ON_DELIVERY'
+      ? 'Pay in person when delivery arrives'
+      : 'Pay in person when delivery arrives';
   }
 }

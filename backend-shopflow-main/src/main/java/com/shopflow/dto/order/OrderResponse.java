@@ -1,6 +1,7 @@
 package com.shopflow.dto.order;
 
 import com.shopflow.entities.OrderStatus;
+import com.shopflow.entities.PaymentMethod;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,6 +10,7 @@ public record OrderResponse(
         Long id,
         String orderNumber,
         OrderStatus status,
+        PaymentMethod paymentMethod,
         Double subtotal,
         Double discountAmount,
         Double shippingFee,

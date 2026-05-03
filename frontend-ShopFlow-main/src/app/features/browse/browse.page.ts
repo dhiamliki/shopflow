@@ -10,6 +10,7 @@ import { CategoriesService } from '../../core/services/categories.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon.component';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
 
 @Component({
   selector: 'app-browse-page',
@@ -20,6 +21,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
     EmptyStateComponent,
     IconComponent,
     ProductCardComponent,
+    TndCurrencyPipe,
   ],
   template: `
     <section class="sf-page py-10" [formGroup]="filtersForm">
@@ -182,9 +184,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   <h3 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
                     Price Range
                   </h3>
-                  <span class="text-xs font-medium text-zinc-300"
-                    >&#36;{{ filtersForm.controls.maxPrice.value }}</span
-                  >
+                  <span class="text-xs font-medium text-zinc-300">{{ filtersForm.controls.maxPrice.value | tndCurrency }}</span>
                 </div>
                 <input
                   type="range"
@@ -194,8 +194,8 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   max="900"
                 />
                 <div class="flex justify-between text-xs text-zinc-600">
-                  <span>$0</span>
-                  <span>$900+</span>
+                  <span>0.00 TND</span>
+                  <span>900.00 TND+</span>
                 </div>
               </section>
 

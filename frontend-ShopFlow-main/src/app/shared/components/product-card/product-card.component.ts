@@ -1,4 +1,4 @@
-import { CurrencyPipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Component, DestroyRef, computed, inject, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -6,12 +6,13 @@ import { Product } from '../../../core/models/commerce.models';
 import { CartService } from '../../../core/services/cart.service';
 import { SessionService } from '../../../core/services/session.service';
 import { GlowSurfaceDirective } from '../../directives/glow-surface.directive';
+import { TndCurrencyPipe } from '../../pipes/tnd-currency.pipe';
 import { IconComponent } from '../icon.component';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, NgClass, GlowSurfaceDirective, IconComponent],
+  imports: [RouterLink, TndCurrencyPipe, NgClass, GlowSurfaceDirective, IconComponent],
   template: `
     <article
       appGlowSurface
@@ -70,7 +71,7 @@ import { IconComponent } from '../icon.component';
 
         <div class="mt-auto flex items-end justify-between gap-3 pt-3">
           <span class="text-xl font-semibold tracking-tight text-white">
-            {{ product().effectivePrice | currency: 'USD' : 'symbol' : '1.2-2' }}
+            {{ product().effectivePrice | tndCurrency }}
           </span>
         </div>
 

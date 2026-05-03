@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -9,13 +9,14 @@ import { SessionService } from '../../core/services/session.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon.component';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card.component';
+import { TndCurrencyPipe } from '../../shared/pipes/tnd-currency.pipe';
 
 @Component({
   selector: 'app-product-detail-page',
   standalone: true,
   imports: [
     CommonModule,
-    CurrencyPipe,
+    TndCurrencyPipe,
     DatePipe,
     DecimalPipe,
     RouterLink,
@@ -130,11 +131,11 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 
                 <div class="flex flex-wrap items-end gap-x-4 gap-y-2">
                   <p class="text-4xl font-semibold leading-none tracking-tight text-white xl:text-5xl">
-                    {{ p.effectivePrice | currency: 'USD' : 'symbol' : '1.0-0' }}
+                    {{ p.effectivePrice | tndCurrency }}
                   </p>
                   @if (p.promoPrice) {
                     <p class="text-xl text-zinc-500 line-through">
-                      {{ p.price | currency: 'USD' : 'symbol' : '1.0-0' }}
+                      {{ p.price | tndCurrency }}
                     </p>
                     <span class="rounded-2xl bg-white/8 px-4 py-2 text-sm font-semibold text-white">
                       {{ discountLabel() }}
@@ -192,7 +193,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
                   <div class="flex items-center justify-between">
                     <span class="text-zinc-400">Price</span>
                     <span class="text-3xl font-semibold tracking-tight text-white">
-                      {{ p.effectivePrice | currency: 'USD' : 'symbol' : '1.0-0' }}
+                      {{ p.effectivePrice | tndCurrency }}
                     </span>
                   </div>
                   <div class="flex items-center justify-between">
