@@ -1,0 +1,11 @@
+{
+  "deleted_old_records": 120,
+  "inserted_new_records": 120,
+  "products_total": 120,
+  "products_with_images": 120,
+  "products_without_images": [],
+  "max_images_per_product": 1,
+  "duplicate_image_paths": 0,
+  "assets_directory": "C:\\Users\\dell\\Desktop\\shopflow-master\\backend\\src\\main\\resources\\static\\uploads\\products",
+  "mapping_csv": "C:\\Users\\dell\\Desktop\\shopflow-master\\backend\\product_image_mapping.csv"
+}

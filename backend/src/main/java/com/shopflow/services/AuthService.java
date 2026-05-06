@@ -1,0 +1,235 @@
+package com.shopflow.services;
+
+import com.shopflow.dto.auth.*;
+import com.shopflow.dto.common.MessageResponse;
+import com.shopflow.entities.PasswordResetToken;
+import com.shopflow.entities.RefreshToken;
+import com.shopflow.entities.Role;
+import com.shopflow.entities.SellerProfile;
+import com.shopflow.entities.User;
+import com.shopflow.exceptions.BadRequestException;
+import com.shopflow.mappers.UserMapper;
+import com.shopflow.repositories.PasswordResetTokenRepository;
+import com.shopflow.repositories.RefreshTokenRepository;
+import com.shopflow.repositories.SellerProfileRepository;
+import com.shopflow.repositories.UserRepository;
+import com.shopflow.security.JwtService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class AuthService {
+
+    private final UserRepository userRepository;
+    private final SellerProfileRepository sellerProfileRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final UserMapper userMapper;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+
+    public AuthResponse register(RegistrationRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new BadRequestException("Email already exists");
+        }
+
+        Role role = request.role() != null ? request.role() : Role.CUSTOMER;
+        if (role == Role.ADMIN) {
+            throw new BadRequestException("ADMIN registration is not allowed");
+        }
+
+        String shopName = request.shopName() == null ? "" : request.shopName().trim();
+        String shopDescription = request.shopDescription() == null ? null : request.shopDescription().trim();
+        if (shopDescription != null && shopDescription.isBlank()) {
+            shopDescription = null;
+        }
+        if (role == Role.SELLER && shopName.isBlank()) {
+            throw new BadRequestException("Please enter your shop name.");
+        }
+
+        User user = User.builder()
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .firstName(request.firstName())
+                .lastName(request.lastName())
+                .role(role)
+                .active(true)
+                .build();
+
+        User savedUser = userRepository.save(user);
+
+        if (role == Role.SELLER) {
+            sellerProfileRepository.save(SellerProfile.builder()
+                    .user(savedUser)
+                    .shopName(shopName)
+                    .description(shopDescription)
+                    .logoUrl(request.shopLogoUrl())
+                    .build());
+        }
+
+        return buildAuthResponse(savedUser);
+    }
+
+    public AuthResponse login(AuthRequest request) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BadRequestException("Invalid credentials"));
+
+        return buildAuthResponse(user);
+    }
+
+    public AuthResponse refreshToken(String refreshTokenValue) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)
+                .orElseThrow(() -> new BadRequestException("Invalid refresh token"));
+
+        if (refreshToken.isRevoked() || refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Invalid refresh token");
+        }
+
+        User user = refreshToken.getUser();
+        if (!jwtService.isTokenValid(refreshTokenValue, user)) {
+            throw new BadRequestException("Invalid refresh token");
+        }
+
+        String accessToken = jwtService.generateToken(user, Map.of("role", user.getRole().name()));
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        refreshToken.setRevoked(true);
+        refreshTokenRepository.save(refreshToken);
+        saveRefreshToken(user, newRefreshToken);
+
+        return new AuthResponse(accessToken, newRefreshToken, userMapper.toResponse(user));
+    }
+
+    public AuthResponse updateToSeller(UpdateToSellerRequest request) {
+        User user = currentUser();
+        if (user.getRole() == Role.ADMIN) {
+            throw new BadRequestException("ADMIN accounts cannot use seller onboarding");
+        }
+
+        String shopName = request.shopName() == null ? "" : request.shopName().trim();
+        if (shopName.isBlank()) {
+            throw new BadRequestException("Please enter your shop name.");
+        }
+
+        String description = request.shopDescription() == null ? null : request.shopDescription().trim();
+        if (description != null && description.isBlank()) {
+            description = null;
+        }
+
+        user.setRole(Role.SELLER);
+        User savedUser = userRepository.save(user);
+
+        SellerProfile profile = sellerProfileRepository.findByUser(savedUser)
+                .orElseGet(() -> SellerProfile.builder().user(savedUser).build());
+        profile.setShopName(shopName);
+        profile.setDescription(description);
+        sellerProfileRepository.save(profile);
+
+        return buildAuthResponse(savedUser);
+    }
+
+    public void logout(String refreshTokenValue) {
+        if (refreshTokenValue != null && !refreshTokenValue.isBlank()) {
+            refreshTokenRepository.findByToken(refreshTokenValue).ifPresent(token -> {
+                token.setRevoked(true);
+                refreshTokenRepository.save(token);
+            });
+        } else if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            userRepository.findByEmail(email).ifPresent(this::revokeActiveTokens);
+        }
+        SecurityContextHolder.clearContext();
+    }
+
+    public ForgotPasswordResponse forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.email()).orElse(null);
+        if (user == null) {
+            return new ForgotPasswordResponse(
+                    "If the account exists, a password reset token has been generated.",
+                    null
+            );
+        }
+
+        passwordResetTokenRepository.deleteByUser(user);
+
+        PasswordResetToken token = passwordResetTokenRepository.save(PasswordResetToken.builder()
+                .user(user)
+                .token(UUID.randomUUID().toString().replace("-", ""))
+                .expiresAt(LocalDateTime.now().plusMinutes(30))
+                .used(false)
+                .build());
+
+        return new ForgotPasswordResponse(
+                "Password reset token generated. Use this token to reset your password.",
+                token.getToken()
+        );
+    }
+
+    public MessageResponse resetPassword(ResetPasswordRequest request) {
+        PasswordResetToken token = passwordResetTokenRepository.findByToken(request.token())
+                .orElseThrow(() -> new BadRequestException("Invalid password reset token"));
+
+        if (token.isUsed() || token.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Password reset token expired or already used");
+        }
+
+        User user = token.getUser();
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+        revokeActiveTokens(user);
+
+        token.setUsed(true);
+        passwordResetTokenRepository.save(token);
+
+        return new MessageResponse("Password updated successfully");
+    }
+
+    private AuthResponse buildAuthResponse(User user) {
+        revokeActiveTokens(user);
+        String accessToken = jwtService.generateToken(user, Map.of("role", user.getRole().name()));
+        String refreshToken = jwtService.generateRefreshToken(user);
+        saveRefreshToken(user, refreshToken);
+        return new AuthResponse(accessToken, refreshToken, userMapper.toResponse(user));
+    }
+
+    private User currentUser() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new BadRequestException("Authentication is required");
+        }
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new BadRequestException("Authenticated user not found"));
+    }
+
+    private void revokeActiveTokens(User user) {
+        var activeTokens = refreshTokenRepository.findAllByUserAndRevokedFalse(user);
+        if (activeTokens.isEmpty()) {
+            return;
+        }
+        activeTokens.forEach(token -> token.setRevoked(true));
+        refreshTokenRepository.saveAll(activeTokens);
+    }
+
+    private void saveRefreshToken(User user, String refreshTokenValue) {
+        refreshTokenRepository.save(RefreshToken.builder()
+                .user(user)
+                .token(refreshTokenValue)
+                .expiresAt(LocalDateTime.now().plusSeconds(jwtService.getRefreshExpiration() / 1000))
+                .revoked(false)
+                .build());
+    }
+}

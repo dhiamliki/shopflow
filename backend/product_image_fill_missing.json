@@ -1,0 +1,251 @@
+{
+  "added": [
+    {
+      "id": 2,
+      "name": "Alder Trench Coat",
+      "source": "https://m.media-amazon.com/images/I/51Mnx4SpfUL.jpg",
+      "query": "Trench Coat outerwear product image",
+      "score": 45
+    },
+    {
+      "id": 5,
+      "name": "Marais Wool Wrap Coat",
+      "source": "https://cdn.shopify.com/s/files/1/0572/8605/products/HOO-ANS-BLK-464_675ca40b-d442-4381-a5ef-4e595f5dc3dc.progressive.jpg?v=1667236037",
+      "query": "Wool Wrap Coat outerwear product image",
+      "score": 53
+    },
+    {
+      "id": 7,
+      "name": "Portofino Leather Tote",
+      "source": "https://cdn11.bigcommerce.com/s-uiywfsyvbe/images/stencil/1280x1280/products/387/10527/10527__64514.1719596102.jpg?c=1",
+      "query": "Leather Tote bags product image",
+      "score": 45
+    },
+    {
+      "id": 8,
+      "name": "Atelier Signet Ring Stack",
+      "source": "https://cdn11.bigcommerce.com/s-9ce68/images/stencil/1280x1280/products/3309/10831/download_1__44993.1660381940.png?c=2",
+      "query": "Signet Ring Stack jewelry product image",
+      "score": 53
+    },
+    {
+      "id": 13,
+      "name": "Nova ANC Wireless Headphones",
+      "source": "https://images-na.ssl-images-amazon.com/images/S/mediaservice.woot.com/d104789b-5695-4997-a002-a64298edcc89._AC_SR882,441_.png",
+      "query": "Nova ANC Wireless Headphones product photo",
+      "score": 45
+    },
+    {
+      "id": 18,
+      "name": "Pulse Portable Bluetooth Speaker",
+      "source": "https://i5.walmartimages.com/seo/8-inch-Portable-Bluetooth-Speakers-10W-HD-Sound-Bass-Wireless-Microphone-LED-Lights-Bluetooth-5-0-Stereo-Loud-Outdoor-Indoor-Retro-Home-Outdoor-Trave_b20c625f-ad4a-4eb3-8fce-cd6b39a7bb85.bfb90db1f8ad4d14ed1c4b566f575b15.jpeg",
+      "query": "Pulse Portable Bluetooth Speaker product photo",
+      "score": 53
+    },
+    {
+      "id": 19,
+      "name": "Meridian Studio Headset",
+      "source": "https://m.media-amazon.com/images/I/41YiYe03J7L.jpg",
+      "query": "Studio Headset headphones product image",
+      "score": 45
+    },
+    {
+      "id": 21,
+      "name": "Raster Wireless Mouse",
+      "source": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6501/6501463_sd.jpg",
+      "query": "Wireless Mouse peripherals product image",
+      "score": 45
+    },
+    {
+      "id": 22,
+      "name": "Signal Streaming Microphone",
+      "source": "https://m.media-amazon.com/images/I/61Fe8OFjjIL._AC_UL640_QL65_.jpg",
+      "query": "Streaming Microphone speakers product image",
+      "score": 45
+    },
+    {
+      "id": 24,
+      "name": "Vector Aluminum Laptop Stand",
+      "source": "https://gulaki.com/wp-content/uploads/2023/06/HDT2311.jpg",
+      "query": "Aluminum Laptop Stand peripherals product image",
+      "score": 26
+    },
+    {
+      "id": 27,
+      "name": "Mira Stoneware Dinner Set",
+      "source": "https://sc04.alicdn.com/kf/Hd5eddd6a63344d58bcc6ce268de15f7aa/284570580/Hd5eddd6a63344d58bcc6ce268de15f7aa.jpg",
+      "query": "Stoneware Dinner Set serveware product image",
+      "score": 45
+    },
+    {
+      "id": 33,
+      "name": "Cedar Marble Serving Board",
+      "source": "https://cdn.shopify.com/s/files/1/0334/4698/5787/products/marble-serving-board-confetti-mill.jpg?v=1663702934",
+      "query": "Marble Serving Board serveware product image",
+      "score": 53
+    },
+    {
+      "id": 35,
+      "name": "Verona Nonstick Fry Pan",
+      "source": "https://m.media-amazon.com/images/I/71nd7YSIRGL.jpg",
+      "query": "Nonstick Fry Pan cookware product image",
+      "score": 53
+    },
+    {
+      "id": 36,
+      "name": "Woven Basket Side Table",
+      "source": "https://cdn.shopify.com/s/files/1/0169/3332/2816/products/TWI-PM-1M1-F-2193-2_1fe6335a-c80d-4c42-bac7-5a4e52f3402d_1024x1024@2x.jpg?v=1646561713",
+      "query": "Basket Side Table accent furniture product image",
+      "score": 61
+    },
+    {
+      "id": 42,
+      "name": "Overnight Recovery Mask",
+      "source": "https://faec8d.myshopify.com/cdn/shop/products/Overnight_Recovery_Mask.jpg?v=1686947004",
+      "query": "Recovery Mask moisturizers product image",
+      "score": 45
+    },
+    {
+      "id": 48,
+      "name": "AirLift Diffuser Dryer",
+      "source": "https://ae01.alicdn.com/kf/HTB1K3vsccyYBuNkSnfoq6AWgVXaI/Salon-Hair-Dryer-Curl-Diffuser-Hair-Dryer-Blow-Diffuser-Hood-Hairdressing-Curling-Hair-Styling-Tools-DIY.jpg",
+      "query": "Diffuser Dryer styling tools product image",
+      "score": 53
+    },
+    {
+      "id": 51,
+      "name": "Flow Cork Yoga Mat",
+      "source": "https://m.media-amazon.com/images/I/5128EjcjxML._SL500_.jpg",
+      "query": "Cork Yoga Mat yoga & recovery product image",
+      "score": 53
+    },
+    {
+      "id": 52,
+      "name": "Northline Camping Lantern",
+      "source": "https://sc04.alicdn.com/kf/H7c2668a2b6674534ba23d48cfeac7776p.jpg",
+      "query": "Northline Camping Lantern product photo",
+      "score": 37
+    },
+    {
+      "id": 54,
+      "name": "VeloShield Road Helmet",
+      "source": "https://contents.mediadecathlon.com/p2637981/3e9e1879a2f82e1f5b1aa5fb89605d761e74413efb21403b008c9d5006ed0c06/road-cycling-helmet-rcr.jpg?format=auto",
+      "query": "VeloShield Road Helmet product photo",
+      "score": 45
+    },
+    {
+      "id": 58,
+      "name": "Forge Adjustable Dumbbells",
+      "source": "https://cdn11.bigcommerce.com/s-qp20v/images/stencil/626x626/products/539/5423/SS-SS000504-505__70092.1686276181.jpg?c=2",
+      "query": "Adjustable Dumbbells strength gear product image",
+      "score": 53
+    },
+    {
+      "id": 60,
+      "name": "Terrain Bike Floor Pump",
+      "source": "https://m.media-amazon.com/images/I/41byiBvSPeL._SL500_.jpg",
+      "query": "Bike Floor Pump cycling product image",
+      "score": 53
+    },
+    {
+      "id": 68,
+      "name": "Storytime Plush Reading Nook",
+      "source": "https://img.freepik.com/premium-photo/cozy-reading-nook-with-plush-armchair_118124-93385.jpg",
+      "query": "Plush Reading Nook room decor product image",
+      "score": 49
+    },
+    {
+      "id": 69,
+      "name": "Puzzle Path Logic Tiles",
+      "source": "https://sc04.alicdn.com/kf/H77ee336977c84bb1a8b678a03c19e3091/238148851/H77ee336977c84bb1a8b678a03c19e3091.jpg",
+      "query": "Path Logic Tiles stem toys product image",
+      "score": 61
+    },
+    {
+      "id": 70,
+      "name": "Craft Club Sticker Studio",
+      "source": "https://thestickerstudio.shop/cdn/shop/files/7.jpg?v=1722928166",
+      "query": "Club Sticker Studio arts & crafts product image",
+      "score": 49
+    },
+    {
+      "id": 82,
+      "name": "Notes on Slow Living",
+      "source": "https://m.media-amazon.com/images/I/71HA6pKPy8L._SL1414_.jpg",
+      "query": "Notes on Slow Living fiction product image",
+      "score": 53
+    },
+    {
+      "id": 94,
+      "name": "Window Hammock Lounger",
+      "source": "https://i5.walmartimages.com/seo/Swing-Hammock-Lounger_68d46826-2e36-4fdb-952e-c932c9fa124f.97e9bb94bd386f4cea3fee96600a131d.jpeg",
+      "query": "Hammock Lounger scratchers product image",
+      "score": 45
+    },
+    {
+      "id": 97,
+      "name": "Atlas Roast Coffee Beans",
+      "source": "https://cdn.pixabay.com/photo/2014/11/04/15/30/coffee-516759_960_720.jpg",
+      "query": "Roast Coffee Beans coffee & tea product image",
+      "score": 41
+    },
+    {
+      "id": 98,
+      "name": "Citrus Grove Extra Virgin Olive Oil",
+      "source": "https://cdn10.bigcommerce.com/s-cw1rp75/products/2883/images/11492/imageService__61151.1666146213.1280.1280.jpg?c=2",
+      "query": "Citrus Grove Extra Virgin Olive Oil olive oil & vinegar product image",
+      "score": 77
+    },
+    {
+      "id": 99,
+      "name": "Monsoon Masala Chai Tin",
+      "source": "https://cdn.shopify.com/s/files/1/0324/1941/4060/products/W1000_tin_800x.png?v=1622482505",
+      "query": "Masala Chai Tin coffee & tea product image",
+      "score": 61
+    },
+    {
+      "id": 100,
+      "name": "Sea Salt Dark Chocolate Squares",
+      "source": "https://cdn.shopify.com/s/files/1/0326/7307/1239/products/dark_sea_salt_bar_product_web_1000x1000.heic?v=1664373513",
+      "query": "Sea Salt Dark Chocolate Squares product photo",
+      "score": 61
+    },
+    {
+      "id": 103,
+      "name": "Bloom Jasmine Green Tea",
+      "source": "https://cdn.shopify.com/s/files/1/0888/8900/products/8010_Jasmine_web.jpg?v=1618252307",
+      "query": "Jasmine Green Tea coffee & tea product image",
+      "score": 53
+    },
+    {
+      "id": 107,
+      "name": "Espresso Blend Capsules",
+      "source": "https://infoodcoffeeroastery.co.za/wp-content/uploads/2023/09/Espresso-Blend-Coffee-capsiles-1000x1000.jpg",
+      "query": "Espresso Blend Capsules coffee & tea product image",
+      "score": 49
+    },
+    {
+      "id": 108,
+      "name": "Smoked Chili Olive Oil",
+      "source": "https://cdn.shopify.com/s/files/1/0762/8763/9861/products/chili-oil-extra-virgin.jpg?v=1683890639",
+      "query": "Chili Olive Oil olive oil & vinegar product image",
+      "score": 53
+    },
+    {
+      "id": 109,
+      "name": "TorqueMax Cordless Drill",
+      "source": "https://images-na.ssl-images-amazon.com/images/I/71NQl2pHZPL.jpg",
+      "query": "Cordless Drill power tools product image",
+      "score": 53
+    },
+    {
+      "id": 118,
+      "name": "Compact Tire Inflator",
+      "source": "https://image.made-in-china.com/2f0j00TRGbzfNdscrI/Smart-Emergency-Tire-Repair-Kits-Tire-Sealant-and-Tire-Inflator.jpg",
+      "query": "Tire Inflator emergency kits product image",
+      "score": 53
+    }
+  ],
+  "attempted": 36,
+  "added_count": 35
+}
